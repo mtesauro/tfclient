@@ -2,4 +2,6 @@
 
 tfclient is a library to communicate with ThreadFix's REST API from the Go language.  It has implemented calls to every exposed API method as documented in the https://github.com/denimgroup/threadfix/wiki/Threadfix-REST-Interface[ThreadFix REST Interface] wiki page.  Using the library you can either get the raw JSON returned by the API or populate Structs which normalize the data returned from ThreadFix into more Go-like data structures.
 
+This code has been written and tested against the libray presented by the ThreadFix 2.1.2 Official release.
+
 As of 2014-12-15, this is a work in progress and hasn't been structured to be "go get"-able.  Those changes will be commited shortly.
