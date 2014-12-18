@@ -1,6 +1,6 @@
 == Team API call's JSON response to calls to Create Team, Lookup Team by (id | name) ==
 
-[souirce,json]
+[source,json]
 ----
 {
   "message": "",
