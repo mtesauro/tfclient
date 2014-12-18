@@ -72,8 +72,8 @@
       "applications": [
         {
           "id": 2,
-          "name": "Pearson Imports",
-          "url": "http://test.actaspire.org/",
+          "name": "Random Imports",
+          "url": "http://test.something.org/",
           "applicationCriticality": {
             "id": 2,
             "name": "Medium"
