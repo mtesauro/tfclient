@@ -52,7 +52,7 @@ func main() {
 	//var team TeamResp
 	//makeTeamStruct(&team, tBody)
 	//aBody := createApplication(tfClient, "Pickle Express", "http://en.wikipedia.org/wiki/Pickle", 3)
-	aBody := lookupAppId(tfClient, 3)
+	//aBody := lookupAppId(tfClient, 3)
 	// BUG FOUND: encoding space as "+" causes lookup failures while %20 works
 	//aBody := lookupAppName(tfClient, "noappspaces", "nospaces")
 	//aBody := lookupAppName(tfClient, "Go Appz", "Created by Go!")
@@ -64,9 +64,9 @@ func main() {
 	// Read in a file from disk and create a io.Reader to pass
 	// STOPPED HERE TO DEBUG
 	//aBody, _ := scanUpload(tfClient, 5, "./examples/ThreadFix-from-CM.xml")
-	fmt.Println(aBody)
-	var app AppResp
-	makeAppStruct(&app, aBody)
+	//fmt.Println(aBody)
+	//var app AppResp
+	//makeAppStruct(&app, aBody)
 	//waf := createWaf(tfClient, "example waf", "")
 	// {"id":1,"name":"example waf","wafTypeName":"mod_security","applications":null}
 	//waf := lookupWafId(tfClient, 1)
@@ -74,17 +74,16 @@ func main() {
 	//waf := getWafs(tfClient)
 	//fmt.Println(waf)
 	// NEEDS MORE WORK
-	//vulns := vulnSearch(tfClient)
-	//fmt.Println(vulns)
+	vulns := vulnSearch(tfClient)
+	fmt.Println(vulns)
 	// json.MarshalIndent(team, "", " ")
 	// fmt.Printf("JSON was\n\n%s", json.MarshalIndent(team, "", " "))
-	// The easiest way to do this is with MarshalIndent, which will let you specify how you would like it indented via the indent argument. Thus, json.MarshalIndent(data, "", " ") will pretty-print using four spaces for indentation.
 
 	fmt.Println("\n")
 
 }
 
-// Helper Functions1
+// Helper Functions
 
 func makeRequest(c *http.Client, m string, u string, b io.Reader) string {
 	// Create a request to customize then send
@@ -410,7 +409,7 @@ func vulnSearch(c *http.Client) string {
 	// Create the needed POST string
 	//req, opt = createSearchMaps()
 	//showOpen=false&showClosed=false&showFalsePositive=false&showHidden=false
-	var postStr = []byte("showOpen=false&showClosed=false&showFalsePositive=true&showHidden=false")
+	var postStr = []byte("showOpen=false&showClosed=false&showFalsePositive=false&showHidden=false")
 	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
 
 	return jsonResp
@@ -502,7 +501,6 @@ func makeAppStruct(a *AppResp, b string) {
 	a.Success = raw["success"].(bool)
 	a.RespCode = int(raw["responseCode"].(float64))
 	a.Msg = raw["message"].(string)
-	fmt.Printf("Early Value of Struct %+v \n\n", a)
 
 	// Setup a struct for App based on the type
 	// resulting from unmarshall'ing the JSON
@@ -549,7 +547,6 @@ func makeAppStruct(a *AppResp, b string) {
 		scansSt := make(map[int]Scan)
 		for i, v := range scans {
 			scan := v.(map[string]interface{})
-			fmt.Printf("Scan contains: \n  %+v \n", scan)
 
 			// http://play.golang.org/p/r5kBJHPDUb
 			// Convert Mills provided by TF into something useful
@@ -557,9 +554,6 @@ func makeAppStruct(a *AppResp, b string) {
 			// TF server vs local time where this is run
 			rawTime := int64(scan["importTime"].(float64))
 			tStamp := time.Unix(0, rawTime*int64(time.Millisecond))
-			fmt.Printf("\nrawTime is %v\n", rawTime)
-			fmt.Printf("\nFormatted is %v\n", tStamp.Format(shortDate))
-			fmt.Printf("\ntStamp is %v\n", tStamp)
 
 			// Create the map of Scans
 			scansSt[i] = Scan{
@@ -579,8 +573,6 @@ func makeAppStruct(a *AppResp, b string) {
 				int(scan["numberCriticalVulnerabilities"].(float64)),
 				scan["scannerName"].(string),
 			}
-
-			fmt.Print("Arbitrary use of i with %v\n", i)
 
 		}
 
@@ -612,6 +604,4 @@ func makeAppStruct(a *AppResp, b string) {
 	}
 
 	a.Ap = appSt
-	fmt.Printf("teamSt type is %+v \n", reflect.TypeOf(a))
-	fmt.Printf("teamSt contains %+v \n", a)
 }

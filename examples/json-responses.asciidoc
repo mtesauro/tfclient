@@ -1,0 +1,208 @@
+== Team API call's JSON response to calls to Create Team, Lookup Team by (id | name) ==
+
+[souirce,json]
+----
+{
+  "message": "",
+  "success": true,
+  "responseCode": -1,
+  "object": {
+    "id": 1,
+    "infoVulnCount": 128,
+    "lowVulnCount": 63,
+    "mediumVulnCount": 42,
+    "highVulnCount": 18,
+    "criticalVulnCount": 17,
+    "totalVulnCount": 268,
+    "name": "Example Team",
+    "applications": [
+      {
+        "id": 1,
+        "name": "TF Demo App",
+        "url": "http://tftarget",
+        "applicationCriticality": {
+          "id": 2,
+          "name": "Medium"
+        }
+      }
+    ]
+  }
+}
+----
+
+== Team API call's JSON response to call to All Teams ==
+
+[source,json]
+----
+{
+  "message": "",
+  "success": true,
+  "responseCode": -1,
+  "object": [
+    {
+      "id": 1,
+      "infoVulnCount": 128,
+      "lowVulnCount": 63,
+      "mediumVulnCount": 42,
+      "highVulnCount": 18,
+      "criticalVulnCount": 17,
+      "totalVulnCount": 268,
+      "name": "Example Team",
+      "applications": [
+        {
+          "id": 1,
+          "name": "TF Demo App",
+          "url": "http://tftarget",
+          "applicationCriticality": {
+            "id": 2,
+            "name": "Medium"
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "infoVulnCount": 0,
+      "lowVulnCount": 46402,
+      "mediumVulnCount": 6425,
+      "highVulnCount": 213,
+      "criticalVulnCount": 6,
+      "totalVulnCount": 53046,
+      "name": "Import Team",
+      "applications": [
+        {
+          "id": 2,
+          "name": "Pearson Imports",
+          "url": "http://test.actaspire.org/",
+          "applicationCriticality": {
+            "id": 2,
+            "name": "Medium"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "infoVulnCount": 1075,
+      "lowVulnCount": 231,
+      "mediumVulnCount": 117,
+      "highVulnCount": 48,
+      "criticalVulnCount": 0,
+      "totalVulnCount": 1471,
+      "name": "Created by Go!",
+      "applications": [
+        {
+          "id": 3,
+          "name": "Go Appz",
+          "url": "https://golang.org",
+          "applicationCriticality": {
+            "id": 1,
+            "name": "Low"
+          }
+        },
+        {
+          "id": 4,
+          "name": "Mo Go Sho Nuff",
+          "url": "https://appseclive.org",
+          "applicationCriticality": {
+            "id": 1,
+            "name": "Low"
+          }
+        },
+        {
+          "id": 5,
+          "name": "Pickle Express",
+          "url": "http://en.wikipedia.org/wiki/Pickle",
+          "applicationCriticality": {
+            "id": 1,
+            "name": "Low"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "infoVulnCount": 0,
+      "lowVulnCount": 0,
+      "mediumVulnCount": 0,
+      "highVulnCount": 0,
+      "criticalVulnCount": 0,
+      "totalVulnCount": 0,
+      "name": "nospaces",
+      "applications": [
+        {
+          "id": 6,
+          "name": "noappspaces",
+          "url": "http://mtesauro.com",
+          "applicationCriticality": {
+            "id": 2,
+            "name": "Medium"
+          }
+        }
+      ]
+    }
+  ]
+}
+----
+
+== Applications API call's JSON response to calls to Create App, Lookup App by (id | name) ==
+
+[source,json]
+----
+{
+  "message": "",
+  "success": true,
+  "responseCode": -1,
+  "object": {
+    "id": 3,
+    "name": "Go Appz",
+    "url": "https://golang.org",
+    "uniqueId": null,
+    "applicationCriticality": {
+      "id": 1,
+      "name": "Low"
+    },
+    "scans": [
+      {
+        "id": 54,
+        "importTime": 1384804367000,
+        "numberClosedVulnerabilities": 0,
+        "numberNewVulnerabilities": 29,
+        "numberOldVulnerabilities": 0,
+        "numberResurfacedVulnerabilities": 0,
+        "numberTotalVulnerabilities": 29,
+        "numberRepeatResults": 0,
+        "numberRepeatFindings": 0,
+        "numberInfoVulnerabilities": 25,
+        "numberLowVulnerabilities": 0,
+        "numberMediumVulnerabilities": 0,
+        "numberHighVulnerabilities": 4,
+        "numberCriticalVulnerabilities": 0,
+        "scannerName": "Burp Suite"
+      }
+    ],
+    "infoVulnCount": 25,
+    "lowVulnCount": 0,
+    "mediumVulnCount": 0,
+    "highVulnCount": 4,
+    "criticalVulnCount": 0,
+    "totalVulnCount": 29,
+    "waf": {
+      "id": 1,
+      "name": "Example-WAF"
+    },
+    "organization": {
+      "id": 3,
+      "name": "Created by Go!"
+    }
+  }
+}
+----
+
+Applications API call's JSON response to a call to All Applicatons
+
+Not documented at https://github.com/denimgroup/threadfix/wiki/ThreadFix-REST-Interface
+
+FIXME - find out if calling /rest/applications/ gives a list of all apps.
+
+If found, put All Apps JSON response here
