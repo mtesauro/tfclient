@@ -206,3 +206,99 @@ Not documented at https://github.com/denimgroup/threadfix/wiki/ThreadFix-REST-In
 FIXME - find out if calling /rest/applications/ gives a list of all apps.
 
 If found, put All Apps JSON response here
+
+== Applications API call's JSON response to a call to Upload Scan ==
+
+handled separate from other App calls
+
+[source,json]
+----
+{
+  "message": "",
+  "success": true,
+  "responseCode": -1,
+  "object": {
+    "id": 7,
+    "importTime": 1415655196000,
+    "numberClosedVulnerabilities": 0,
+    "numberNewVulnerabilities": 0,
+    "numberOldVulnerabilities": 0,
+    "numberResurfacedVulnerabilities": 0,
+    "numberTotalVulnerabilities": 0,
+    "numberRepeatResults": 0,
+    "numberRepeatFindings": 0,
+    "numberInfoVulnerabilities": 0,
+    "numberLowVulnerabilities": 0,
+    "numberMediumVulnerabilities": 0,
+    "numberHighVulnerabilities": 0,
+    "numberCriticalVulnerabilities": 0,
+    "findings": [
+      {
+        "id": 135,
+        "longDescription": null,
+        "attackString": "",
+        "attackRequest": null,
+        "attackResponse": null,
+        "nativeId": "7a978638a89516db5aa9d74efcc9a094",
+        "displayId": null,
+        "surfaceLocation": {
+          "id": 135,
+          "parameter": null,
+          "path": ""
+        },
+        "sourceFileLocation": null,
+        "dataFlowElements": null,
+        "calculatedUrlPath": "/",
+        "calculatedFilePath": "",
+        "dependency": null,
+        "vulnerabilityType": "Web Browser XSS Protection Not Enabled",
+        "severity": "1"
+      },
+      {
+        "id": 136,
+        "longDescription": null,
+        "attackString": "",
+        "attackRequest": null,
+        "attackResponse": null,
+        "nativeId": "2d0a7b83d71dc4b5fcbabd8d7b3845d8",
+        "displayId": null,
+        "surfaceLocation": {
+          "id": 136,
+          "parameter": null,
+          "path": ""
+        },
+        "sourceFileLocation": null,
+        "dataFlowElements": null,
+        "calculatedUrlPath": "/",
+        "calculatedFilePath": "",
+        "dependency": null,
+        "vulnerabilityType": "X-Content-Type-Options header missing",
+        "severity": "1"
+      },
+      {
+        "id": 137,
+        "longDescription": null,
+        "attackString": "",
+        "attackRequest": null,
+        "attackResponse": null,
+        "nativeId": "7f00f27977d40aca399a12363ab05dfe",
+        "displayId": null,
+        "surfaceLocation": {
+          "id": 137,
+          "parameter": null,
+          "path": ""
+        },
+        "sourceFileLocation": null,
+        "dataFlowElements": null,
+        "calculatedUrlPath": "/",
+        "calculatedFilePath": "",
+        "dependency": null,
+        "vulnerabilityType": "X-Frame-Options header not set",
+        "severity": "0"
+      }
+    ],
+    "scannerName": "OWASP Zed Attack Proxy"
+  }
+}
+----
+
