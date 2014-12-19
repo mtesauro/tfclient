@@ -605,3 +605,17 @@ func makeAppStruct(a *AppResp, b string) {
 
 	a.Ap = appSt
 }
+
+func makeUploadStruct(u *UpldResp, b string) {
+	// Parse the sent JSON body from the API
+	var raw map[string]interface{}
+	if err := json.Unmarshal([]byte(b), &raw); err != nil {
+		// Add some proper error handling here - maybe return an error
+		panic(err)
+	}
+
+	// Setup the values in the initial struct
+	u.Success = raw["success"].(bool)
+	u.RespCode = int(raw["responseCode"].(float64))
+	u.Msg = raw["message"].(string)
+}
