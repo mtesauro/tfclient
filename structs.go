@@ -193,9 +193,9 @@ type TeamU struct {
 }
 
 type CWE struct {
-	Id     `json:"id"`
-	Name   `json:"name"`
-	DispId `json:"displayId"`
+	Id     int    `json:"id"`
+	Name   string `json:"name"`
+	DispId string `json:"displayId"`
 }
 
 // Finding and the internal SurfLoc struct are defined under the Upload Scan call above
