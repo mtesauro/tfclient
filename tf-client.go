@@ -60,7 +60,7 @@ func main() {
 	//aBody := lookupAppId(tfClient, 3)
 	// BUG FOUND: encoding space as "+" causes lookup failures while %20 works
 	//aBody := lookupAppName(tfClient, "noappspaces", "nospaces")
-	aBody := lookupAppName(tfClient, "Go Appz", "Created by Go!")
+	//aBody := lookupAppName(tfClient, "Go Appz", "Created by Go!")
 	// BUG FOUND
 	//aBody := setAppParams(tfClient, 4, "NONE", "http://www.repository2.com")
 	//aBody := setUrl(tfClient, 4, "https://appseclive.org")
@@ -69,11 +69,11 @@ func main() {
 	// Read in a file from disk and create a io.Reader to pass
 	// STOPPED HERE TO DEBUG
 	//aBody, _ := scanUpload(tfClient, 6, "./examples/burp-demo-site.xml")
-	aBody = uploadResponse
+	//aBody = uploadResponse
 	//fmt.Println(aBody)
-	var upld UpldResp
-	makeUploadStruct(&upld, aBody)
-	fmt.Printf("\n\n The path is %+v \n\n", upld.Upload[0].Findings[0].Loc.Path)
+	//var upld UpldResp
+	//makeUploadStruct(&upld, aBody)
+	//fmt.Printf("\n\n The path is %+v \n\n", upld.Upload[0].Findings[0].Loc.Path)
 	//var app AppResp
 	//makeAppStruct(&app, aBody)
 	//waf := createWaf(tfClient, "example waf", "")
@@ -83,8 +83,8 @@ func main() {
 	//waf := getWafs(tfClient)
 	//fmt.Println(waf)
 	// NEEDS MORE WORK
-	//vulns := vulnSearch(tfClient)
-	//fmt.Println(vulns)
+	vulns := vulnSearch(tfClient)
+	fmt.Println(vulns)
 	// json.MarshalIndent(team, "", " ")
 	// fmt.Printf("JSON was\n\n%s", json.MarshalIndent(team, "", " "))
 
@@ -173,7 +173,7 @@ func prepScanFile(uri string, paramName string, path string) (*http.Request, str
 	return req, header, err
 }
 
-func createSearchMaps() (map[string]string, map[string]map[string]string) {
+func createSearchStruct() Search {
 	// Seeminly required fields which are sent every time by the Java Client
 	r := map[string]string{
 		"showHidden":        "false",
@@ -182,23 +182,152 @@ func createSearchMaps() (map[string]string, map[string]map[string]string) {
 		"showOpen":          "false",
 	}
 
-	// Optional fields - map of 'normal' name to what was sent by the Java Client
-	// plus if the parameter is sent one time or (if single is false) multiple times
-	o := map[string]map[string]string{
-		"teams":     map[string]string{"tfname": "teams%5B0%5D.id", "single": "false"},
-		"apps":      map[string]string{"tfname": "applications%5B0%5D.id", "single": "false"},
-		"cwe":       map[string]string{"tfname": "genericVulnerabilities%5B0%5D.id", "single": "false"},
-		"scanner":   map[string]string{"tfname": "channelTypes%5B0%5D.name", "single": "false"},
-		"severity":  map[string]string{"tfname": "genericSeverities%5B0%5D.intValue", "single": "false"},
-		"numVulns":  map[string]string{"tfname": "numberVulnerabilities", "single": "true"},
-		"param":     map[string]string{"tfname": "parameter", "single": "true"},
-		"path":      map[string]string{"tfname": "path", "single": "true"},
-		"start":     map[string]string{"tfname": "startDate", "single": "true"},
-		"end":       map[string]string{"tfname": "endDate", "single": "true"},
-		"numMerged": map[string]string{"tfname": "numberMerged", "single": "true"},
+	// Fill in the defaults for the single and multi parameter structs
+	sp := SinglePara{
+		map[string]string{"name": "numberVulnerabilities", "value": ""}, // NumVulns
+		map[string]string{"name": "parameter", "value": ""},             // Param
+		map[string]string{"name": "path", "value": ""},                  // Path
+		map[string]string{"name": "startDate", "value": ""},             // Start
+		map[string]string{"name": "endDate", "value": ""},               // End
+		map[string]string{"name": "numberMerged", "value": ""},          // NumMerged
 	}
 
-	return r, o
+	mp := MultiPara{
+		map[string]string{"name": "teams%5B0%5D.id", "value": ""},                   // Teams
+		map[string]string{"name": "applications%5B0%5D.id", "value": ""},            // Apps
+		map[string]string{"name": "genericVulnerabilities%5B0%5D.id", "value": ""},  // Cwe
+		map[string]string{"name": "channelTypes%5B0%5D.name", "value": ""},          // Scammer
+		map[string]string{"name": "genericSeverities%5B0%5D.intValue", "value": ""}, // Severity
+	}
+
+	// Create the Search Struct
+	s := Search{
+		r,  // ReqPara
+		sp, // SinglePara
+		mp, // MultiPara
+	}
+
+	return s
+
+}
+
+// Search helper calls
+
+func showInSearch(s *Search, show string) {
+	// Set the appropriate parameter to true
+	switch strings.ToLower(show) {
+	case "hidden":
+		s.ReqPara["showHidden"] = "true"
+	case "false":
+		s.ReqPara["showFalsePositive"] = "true"
+	case "falsepositive":
+		s.ReqPara["showFalsePositive"] = "true"
+	case "closed":
+		s.ReqPara["showClosed"] = "true"
+	case "open":
+		s.ReqPara["showOpen"] = "true"
+	}
+
+	// ToDo: Add a default case and return an error if show
+	// doesn't match any of the cases
+
+}
+
+func numSearchResults(s *Search, n int) {
+	// Set the Number of vulnerabilities to return
+	s.SingleParas.NumVulns["value"] = strconv.Itoa(n)
+}
+
+func paramSearch(s *Search, p string) {
+	// Set the parameter to search for
+	s.SingleParas.Param["value"] = p
+}
+
+func pathSearch(s *Search, p string) {
+	// Set the path to search for
+	s.SingleParas.Path["value"] = p
+}
+
+func startSearch(s *Search, str string) {
+	// Parse the string into a Go time struct
+	// expecting date as mm/dd/yyyy
+	t, _ := time.Parse("01/02/2006", str)
+	// ToDo: catch this error and try other formats
+
+	// Convert string to miliseconds since the Unix Epoch as expected by Java
+	// and the ThreadFix API
+	s.SingleParas.Start["value"] = strconv.FormatInt((t.UnixNano() / 1000000), 10)
+}
+
+func endSearch(s *Search, str string) {
+	// Parse the string into a Go time struct
+	// expecting date as mm/dd/yyyy
+	t, _ := time.Parse("01/02/2006", str)
+	// ToDo: catch this error and try other formats
+
+	// Convert string to miliseconds since the Unix Epoch as expected by Java
+	// and the ThreadFix API
+	s.SingleParas.End["value"] = strconv.FormatInt((t.UnixNano() / 1000000), 10)
+}
+
+func numMergedSearch(s *Search, n int) {
+	// Set the Number of vulnerabilities to return
+	s.SingleParas.NumMerged["value"] = strconv.Itoa(n)
+}
+
+func teamIdSearch(s *Search, t ...int) {
+	// Create a comma seperated list for the teams value
+	var val string
+	for i, _ := range t {
+		val = val + "," + strconv.Itoa(t[i])
+	}
+
+	// Set Teams search by slicing off the initial comma
+	s.MultiParas.Teams["value"] = val[1:]
+}
+
+func appIdSearch(s *Search, a ...int) {
+	// Create a comman seperated list for the apps value
+	var val string
+	for i, _ := range a {
+		val = val + "," + strconv.Itoa(a[i])
+	}
+
+	// Set Apps search by slicing off the initial comma
+	s.MultiParas.Apps["value"] = val[1:]
+}
+
+func cweIdSearch(s *Search, c ...int) {
+	// Create a comman seperated list for the cwe value
+	var val string
+	for i, _ := range c {
+		val = val + "," + strconv.Itoa(c[i])
+	}
+
+	// Set CWE search by slicing off the initial comma
+	s.MultiParas.Cwe["value"] = val[1:]
+}
+
+func scannerSearch(s *Search, sc ...string) {
+	// Create a comman seperated list of scanners
+	var val string
+	for i, _ := range sc {
+		val = val + "," + sc[i]
+	}
+
+	// Set CWE search by slicing off the initial comma
+	s.MultiParas.Scanner["value"] = val[1:]
+}
+
+func severitySearch(s *Search, sev ...int) {
+	// Create a comman seperated list for the cwe value
+	var val string
+	for i, _ := range sev {
+		val = val + "," + strconv.Itoa(sev[i])
+	}
+
+	// Set CWE search by slicing off the initial comma
+	s.MultiParas.Severity["value"] = val[1:]
 }
 
 // Team API calls
@@ -418,7 +547,8 @@ func vulnSearch(c *http.Client) string {
 	// Create the needed POST string
 	//req, opt = createSearchMaps()
 	//showOpen=false&showClosed=false&showFalsePositive=false&showHidden=false
-	var postStr = []byte("showOpen=false&showClosed=false&showFalsePositive=false&showHidden=false")
+	var postStr = []byte("showOpen=false&showClosed=false&showFalsePositive=false" +
+		"&showHidden=false&numberVulnerabilities=3")
 	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
 
 	return jsonResp

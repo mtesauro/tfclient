@@ -126,7 +126,7 @@ type UpldInfo struct {
 	NumMed        int              `json:"numberMediumVulnerabilities"`
 	NumHigh       int              `json:"numberHighVulnerabilities"`
 	NumCrit       int              `json:"numberCriticalVulnerabilities"`
-	Scaner        string           `json:"scannerName"`
+	Scanner       string           `json:"scannerName"`
 	Findings      map[int]*Finding `json:"findings"`
 }
 
@@ -199,3 +199,30 @@ type CWE struct {
 }
 
 // Finding and the internal SurfLoc struct are defined under the Upload Scan call above
+
+///////////////////////////////////////////////////////////////////////////////////
+// Struct for the items that can be queried in the Vulnerability Search API call //
+///////////////////////////////////////////////////////////////////////////////////
+
+type Search struct {
+	ReqPara     map[string]string // Required for every request
+	SingleParas SinglePara
+	MultiParas  MultiPara
+}
+
+type SinglePara struct {
+	NumVulns  map[string]string
+	Param     map[string]string
+	Path      map[string]string
+	Start     map[string]string
+	End       map[string]string
+	NumMerged map[string]string
+}
+
+type MultiPara struct {
+	Teams    map[string]string
+	Apps     map[string]string
+	Cwe      map[string]string
+	Scanner  map[string]string
+	Severity map[string]string
+}
