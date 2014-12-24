@@ -82,16 +82,13 @@ func main() {
 	//waf := lookupWafName(tfClient, "example waf")
 	//waf := getWafs(tfClient)
 	//fmt.Println(waf)
-	// NEEDS MORE WORK
-	vulns := vulnSearch(tfClient)
-	fmt.Println(vulns)
 	search := createSearchStruct()
-	//showInSearch(&search, "closed")
-	showInSearch(&search, "open")
-	showInSearch(&search, "hidDEN")
+	showInSearch(&search, "closed")
+	//showInSearch(&search, "open")
+	//showInSearch(&search, "hidDEN")
 	numSearchResults(&search, 4)
 	paramSearch(&search, "username")
-	pathSearch(&search, "login.jsp")
+	//pathSearch(&search, "login.jsp")
 	startSearch(&search, "05/13/2010")
 	endSearch(&search, "11/12/2013")
 	numMergedSearch(&search, 2)
@@ -101,6 +98,8 @@ func main() {
 	scannerSearch(&search, "IBM Rational AppScan", "Arachni")
 	severitySearch(&search, 5, 4, 3)
 	fmt.Printf("\nsearch will look for %+v \n", search)
+	vulns := vulnSearch(tfClient, &search)
+	fmt.Printf("\n\nThe first 50 of the response is %v", vulns)
 	// json.MarshalIndent(team, "", " ")
 	// fmt.Printf("JSON was\n\n%s", json.MarshalIndent(team, "", " "))
 
@@ -556,15 +555,83 @@ func getWafs(c *http.Client) string {
 	return jsonResp
 }
 
-func vulnSearch(c *http.Client) string {
+func vulnSearch(c *http.Client, s *Search) string {
 	//Set URL for this API call
 	u := TF_URL + "/vulnerabilities?apiKey=" + APIKEY
 
 	// Create the needed POST string
-	//req, opt = createSearchMaps()
-	//showOpen=false&showClosed=false&showFalsePositive=false&showHidden=false
-	var postStr = []byte("showOpen=false&showClosed=false&showFalsePositive=false" +
-		"&showHidden=false&numberVulnerabilities=3")
+	qry := "&"
+	// Required parameters
+	for i, v := range s.ReqPara {
+		qry = qry + i + "=" + v + "&"
+	}
+
+	//Single value parameters
+	if len(s.SingleParas.NumVulns["value"]) > 0 {
+		qry = qry + s.SingleParas.NumVulns["name"] + "=" +
+			s.SingleParas.NumVulns["value"] + "&"
+	}
+	if len(s.SingleParas.Param["value"]) > 0 {
+		qry = qry + s.SingleParas.Param["name"] + "=" +
+			url.QueryEscape(s.SingleParas.Param["value"]) + "&"
+	}
+	if len(s.SingleParas.Path["value"]) > 0 {
+		qry = qry + s.SingleParas.Path["name"] + "=" +
+			url.QueryEscape(s.SingleParas.Path["value"]) + "&"
+	}
+	if len(s.SingleParas.Start["value"]) > 0 {
+		qry = qry + s.SingleParas.Start["name"] + "=" +
+			s.SingleParas.Start["value"] + "&"
+	}
+	if len(s.SingleParas.End["value"]) > 0 {
+		qry = qry + s.SingleParas.End["name"] + "=" +
+			s.SingleParas.End["value"] + "&"
+	}
+	if len(s.SingleParas.NumMerged["value"]) > 0 {
+		qry = qry + s.SingleParas.NumMerged["name"] + "=" +
+			s.SingleParas.NumMerged["value"] + "&"
+	}
+
+	// Multi-value parameters
+	if len(s.MultiParas.Teams["value"]) > 0 {
+		vals := strings.Split(s.MultiParas.Teams["value"], ",")
+		for _, item := range vals {
+			qry = qry + s.MultiParas.Teams["name"] + "=" +
+				url.QueryEscape(item) + "&"
+		}
+	}
+	if len(s.MultiParas.Apps["value"]) > 0 {
+		vals := strings.Split(s.MultiParas.Apps["value"], ",")
+		for _, item := range vals {
+			qry = qry + s.MultiParas.Apps["name"] + "=" +
+				url.QueryEscape(item) + "&"
+		}
+	}
+	if len(s.MultiParas.Cwe["value"]) > 0 {
+		vals := strings.Split(s.MultiParas.Cwe["value"], ",")
+		for _, item := range vals {
+			qry = qry + s.MultiParas.Cwe["name"] + "=" +
+				url.QueryEscape(item) + "&"
+		}
+	}
+	if len(s.MultiParas.Scanner["value"]) > 0 {
+		vals := strings.Split(s.MultiParas.Scanner["value"], ",")
+		for _, item := range vals {
+			qry = qry + s.MultiParas.Scanner["name"] + "=" +
+				url.QueryEscape(item) + "&"
+		}
+	}
+	if len(s.MultiParas.Severity["value"]) > 0 {
+		vals := strings.Split(s.MultiParas.Severity["value"], ",")
+		for _, item := range vals {
+			qry = qry + s.MultiParas.Severity["name"] + "=" +
+				url.QueryEscape(item) + "&"
+		}
+	}
+
+	// Slice to strip off beginning and ending &
+	var postStr = []byte(qry[1:(len(qry) - 1)])
+	fmt.Printf("\n post string is %v \n", qry[1:(len(qry)-1)])
 	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
 
 	return jsonResp
