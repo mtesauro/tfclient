@@ -177,17 +177,17 @@ type Result struct {
 	Depend       string           `json:"dependency"`            // null
 	Param        string           `json:"parameter"`             // null
 	Path         string           `json:"path"`                  // "/"
-	Apps         AppT             `json:app`                     // reusing AppT struct from Teams call above
+	Apps         AppT             `json:"app"`                   // reusing AppT struct from Teams call above
 	VulnId       string           `json:"vulnId"`                // "10"
-	Team         TeamU            `json:"team"`
-	Scanners     map[int]string   `json:"channelNames"`
-	CweVuln      CWE              `json:"genericVulnerability"`
-	Findings     map[int]*Finding `json:"findings"`
+	Team         TeamS            `json:"team"`                  // Abridged Team struct
+	Scanners     map[int]string   `json:"channelNames"`          // Should at least have one
+	CweVuln      CWE              `json:"genericVulnerability"`  // Should at least have one
+	Findings     map[int]*Finding `json:"findings"`              // Should at least have one
 }
 
 // AppT and the internal CritLevel struct are defined under the Teams API call above
 
-type TeamU struct {
+type TeamS struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 }
@@ -195,7 +195,7 @@ type TeamU struct {
 type CWE struct {
 	Id     int    `json:"id"`
 	Name   string `json:"name"`
-	DispId string `json:"displayId"`
+	DispId int    `json:"displayId"`
 }
 
 // Finding and the internal SurfLoc struct are defined under the Upload Scan call above

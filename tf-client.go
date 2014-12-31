@@ -83,26 +83,31 @@ func main() {
 	//waf := getWafs(tfClient)
 	//fmt.Println(waf)
 	search := createSearchStruct()
-	showInSearch(&search, "closed")
-	//showInSearch(&search, "open")
+	//showInSearch(&search, "closed")
+	showInSearch(&search, "open")
 	//showInSearch(&search, "hidDEN")
 	numSearchResults(&search, 4)
-	paramSearch(&search, "username")
+	//paramSearch(&search, "username")
 	//pathSearch(&search, "login.jsp")
 	startSearch(&search, "05/13/2010")
 	endSearch(&search, "11/12/2013")
-	numMergedSearch(&search, 2)
+	///numMergedSearch(&search, 2)
 	teamIdSearch(&search, 1, 3, 4)
 	appIdSearch(&search, 2)
-	cweIdSearch(&search, 531, 200)
+	//cweIdSearch(&search, 531, 200)
 	scannerSearch(&search, "IBM Rational AppScan", "Arachni")
 	severitySearch(&search, 5, 4, 3)
-	fmt.Printf("\nsearch will look for %+v \n", search)
+	fmt.Printf("\nSearch will look for %+v \n", search)
 	vulns := vulnSearch(tfClient, &search)
-	fmt.Printf("\n\nThe first 50 of the response is %v", vulns)
-	// json.MarshalIndent(team, "", " ")
-	// fmt.Printf("JSON was\n\n%s", json.MarshalIndent(team, "", " "))
-
+	fmt.Printf("\n\nThe search response was %v", vulns[0:75])
+	var srch SrchResp
+	makeSearchStruct(&srch, vulns)
+	fmt.Printf("An example value is %+v\n", srch.Results[0].Findings[0].VulnType)
+	for _, v := range srch.Results {
+		for key, _ := range v.Findings {
+			fmt.Printf("The title from the scanner was: \"%+v\"\n", v.Findings[key].VulnType)
+		}
+	}
 	fmt.Println("\n")
 
 }
@@ -631,7 +636,6 @@ func vulnSearch(c *http.Client, s *Search) string {
 
 	// Slice to strip off beginning and ending &
 	var postStr = []byte(qry[1:(len(qry) - 1)])
-	fmt.Printf("\n post string is %v \n", qry[1:(len(qry)-1)])
 	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
 
 	return jsonResp
@@ -843,9 +847,9 @@ func makeUploadStruct(u *UpldResp, b string) {
 
 	// Setup a struct for Upld based on the type
 	// resulting from unmarshall'ing the JSON
-	tType := reflect.TypeOf(raw["object"])
+	uType := reflect.TypeOf(raw["object"])
 	var obj []interface{}
-	if strings.Contains(tType.String(), "map") {
+	if strings.Contains(uType.String(), "map") {
 		// Single instance of Upload provided
 		o := raw["object"].(map[string]interface{})
 		obj = []interface{}{o}
@@ -968,4 +972,228 @@ func makeUploadStruct(u *UpldResp, b string) {
 	}
 
 	u.Upload = upldSt
+}
+
+func makeSearchStruct(s *SrchResp, b string) {
+	// Parse the sent JSON body from the API
+	var raw map[string]interface{}
+	if err := json.Unmarshal([]byte(b), &raw); err != nil {
+		// Add some proper error handling here - maybe return an error
+		panic(err)
+	}
+
+	// Setup the values in the initial struct
+	s.Success = raw["success"].(bool)
+	s.RespCode = int(raw["responseCode"].(float64))
+	s.Msg = raw["message"].(string)
+
+	// Setup a struct for Upld based on the type
+	// resulting from unmarshall'ing the JSON
+	sType := reflect.TypeOf(raw["object"])
+	fmt.Printf("Object type is %+v \n", sType)
+	var obj []interface{}
+	if strings.Contains(sType.String(), "map") {
+		// Single instance of Upload provided
+		o := raw["object"].(map[string]interface{})
+		obj = []interface{}{o}
+	} else {
+		// Multiple instances of Upload provided
+		obj = raw["object"].([]interface{})
+	}
+
+	resSt := make(map[int]Result)
+	// Cycle through the object returned from the TF API for this call
+	for i, v := range obj {
+		// Create a map of the results returned
+		re := v.(map[string]interface{})
+
+		// Step into Docs map
+		docs := make(map[int]string)
+		d := re["documents"].([]interface{})
+		for i, v := range d {
+			docs[i] = v.(string)
+		}
+
+		// Step into Comments map
+		vComm := make(map[int]string)
+		c := re["vulnerabilityComments"].([]interface{})
+		for i, v := range c {
+			vComm[i] = v.(string)
+		}
+
+		// Step into Apps map
+		app := re["app"].(map[string]interface{})
+		var appSt AppT
+
+		// Step into the App Criticality map
+		crit := app["applicationCriticality"].(map[string]interface{})
+		critSt := AppCrit{
+			int(crit["id"].(float64)),
+			crit["name"].(string),
+		}
+
+		// Create a new AppT struct
+		appSt = AppT{
+			int(app["id"].(float64)),
+			app["name"].(string),
+			app["url"].(string),
+			critSt,
+		}
+
+		// Step into TeamU map
+		team := re["team"].(map[string]interface{})
+		teamSt := TeamS{
+			int(team["id"].(float64)),
+			team["name"].(string),
+		}
+
+		// Step into the CWE map
+		cwe := re["genericVulnerability"].(map[string]interface{})
+		cweSt := CWE{
+			int(cwe["id"].(float64)),
+			cwe["name"].(string),
+			int(cwe["displayId"].(float64)),
+		}
+
+		// Step into Scanners/channelNames map
+		scnrs := make(map[int]string)
+		s := re["channelNames"].([]interface{})
+		for i, v := range s {
+			scnrs[i] = v.(string)
+		}
+
+		// Step into the Findings map
+		find := re["findings"].([]interface{})
+		findSt := make(map[int]*Finding)
+
+		for i, v := range find {
+			f := v.(map[string]interface{})
+
+			// create the surface location struct
+			s := f["surfaceLocation"].(map[string]interface{})
+			// Check for nil
+			param := ""
+			if reflect.TypeOf(s["surfaceLocation"]) != nil {
+				// surfaceLocation was actually set
+				param = s["surfaceLocation"].(string)
+			}
+			surfSt := SurfLoc{
+				int(s["id"].(float64)),
+				param,
+				s["path"].(string),
+			}
+
+			// The following items are not always set in the JSON response
+			lDesc := ""
+			if reflect.TypeOf(f["longDescription"]) != nil {
+				// longDescription was actually set
+				lDesc = f["longDescription"].(string)
+			}
+			aStr := ""
+			if reflect.TypeOf(f["attackString"]) != nil {
+				// attackString was actually set
+				aStr = f["attackString"].(string)
+			}
+			aResq := ""
+			if reflect.TypeOf(f["attackRequest"]) != nil {
+				// attackRequest was actually set
+				aResq = f["attackRequest"].(string)
+			}
+			aResp := ""
+			if reflect.TypeOf(f["attackResponse"]) != nil {
+				// attackResponse was actually set
+				aResp = f["attackResponse"].(string)
+			}
+			dId := ""
+			if reflect.TypeOf(f["displayId"]) != nil {
+				// displayId was actually set
+				dId = f["displayId"].(string)
+			}
+			sFL := ""
+			if reflect.TypeOf(f["sourceFileLocation"]) != nil {
+				// sourceFileLocation was actually set
+				sFL = f["sourceFileLocation"].(string)
+			}
+			dF := make(map[int]string)
+			if reflect.TypeOf(f["dataFlowElements"]) != nil {
+				// dataFlowElements was actually set - not seen an example of this
+				d := f["dataFlowElements"].([]interface{})
+				for i, v := range d {
+					dF[i] = v.(string)
+				}
+				fmt.Printf("This is a print of %+v", f["dataFlowElements"])
+			}
+			dep := ""
+			if reflect.TypeOf(f["dependency"]) != nil {
+				// dependency was actually set
+				dep = f["dependency"].(string)
+			}
+
+			// Create a new Finding struct
+			findSt[i] = &Finding{
+				int(f["id"].(float64)),
+				lDesc,
+				aStr,
+				aResq,
+				aResp,
+				f["nativeId"].(string),
+				dId,
+				sFL,
+				dF,
+				f["calculatedUrlPath"].(string),
+				f["calculatedFilePath"].(string),
+				dep,
+				f["vulnerabilityType"].(string),
+				f["severity"].(string),
+				surfSt,
+			}
+
+		}
+
+		// Check for those values which may be null from the API
+		deft := ""
+		if reflect.TypeOf(re["defect"]) != nil {
+			// defect was actually set
+			deft = re["defect"].(string)
+		}
+		cfp := ""
+		if reflect.TypeOf(re["calculatedFilePath"]) != nil {
+			// calculatedFilePath was actually set
+			cfp = re["calculatedFilePath"].(string)
+		}
+		dep := ""
+		if reflect.TypeOf(re["dependency"]) != nil {
+			// dependency is was actually set
+			dep = re["dependency"].(string)
+		}
+		parm := ""
+		if reflect.TypeOf(re["parameter"]) != nil {
+			// parameter is was actually set
+			parm = re["parameter"].(string)
+		}
+
+		resSt[i] = Result{
+			int(re["id"].(float64)),
+			deft,
+			cfp,
+			re["active"].(bool),
+			re["isFalsePositive"].(bool),
+			re["hidden"].(bool),
+			docs,
+			vComm,
+			dep,
+			parm,
+			re["path"].(string),
+			appSt,
+			re["vulnId"].(string),
+			teamSt,
+			scnrs,
+			cweSt,
+			findSt,
+		}
+	}
+
+	// Add the last piece of the search results struct
+	s.Results = resSt
+
 }
