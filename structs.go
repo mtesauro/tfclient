@@ -1,5 +1,6 @@
 // structs.go
-package main
+// data structuctures for the ThreadFix REST API library
+package tfclient
 
 import "time"
 
