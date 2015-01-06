@@ -603,8 +603,7 @@ func MakeTeamStruct(t *TeamResp, b string) {
 	}
 
 	t.Tm = teamSt
-	fmt.Printf("\n\nteamSt type is %+v \n", reflect.TypeOf(t))
-	fmt.Printf("\n\nteamSt contains %+v \n", t)
+
 }
 
 func MakeAppStruct(a *AppResp, b string) {
