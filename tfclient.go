@@ -569,7 +569,7 @@ func MakeTeamStruct(t *TeamResp, b string) {
 		// Step into the Applications map
 		apps := tm["applications"].([]interface{})
 		appSt := make(map[int]AppT)
-		for _, v := range apps {
+		for i, v := range apps {
 			// Create a map of applications
 			app := v.(map[string]interface{})
 
