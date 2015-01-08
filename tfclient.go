@@ -736,6 +736,14 @@ func MakeUploadStruct(u *UpldResp, b string) {
 	u.RespCode = int(raw["responseCode"].(float64))
 	u.Msg = raw["message"].(string)
 
+	// Return early if the upload returns success as false
+	if u.Success != true {
+		// Create an empty UploadResp struct and return early
+		emptySt := make(map[int]UpldInfo)
+		u.Upload = emptySt
+		return
+	}
+
 	// Setup a struct for Upld based on the type
 	// resulting from unmarshall'ing the JSON
 	uType := reflect.TypeOf(raw["object"])
