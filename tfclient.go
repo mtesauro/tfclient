@@ -590,7 +590,7 @@ func MakeTeamStruct(t *TeamResp, b string) {
 			appSt[i] = AppT{
 				Id:        int(app["id"].(float64)),
 				Name:      app["name"].(string),
-				Url:       app["url"].(string), // What if this is an empty string?
+				Url:       url,
 				CritLevel: critSt,
 			}
 
