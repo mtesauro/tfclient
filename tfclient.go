@@ -580,10 +580,17 @@ func MakeTeamStruct(t *TeamResp, b string) {
 				crit["name"].(string),
 			}
 
+			// Make sure App URL is provided to avoid an interface conversion error
+			url := ""
+			if reflect.TypeOf(app["url"]) != nil {
+				// App URL was actually set
+				url = app["url"].(string)
+			}
+
 			appSt[i] = AppT{
 				Id:        int(app["id"].(float64)),
 				Name:      app["name"].(string),
-				Url:       app["url"].(string),
+				Url:       app["url"].(string), // What if this is an empty string?
 				CritLevel: critSt,
 			}
 
