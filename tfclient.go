@@ -3,9 +3,11 @@
 package tfclient
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,12 +28,28 @@ import (
 const APIKEY = "Mry4RN77oz0o4Cm2Tfv94cdSJvXLbOVP0natLfReko"
 const TF_URL = "https://192.168.56.101/threadfix/rest"
 
+// Name of the config file to hold things like TF url and TF's API key
+var configFile string = "tfclient.config"
+var apikey string = ""
+var tf_url string = ""
+
 // Use to format App Struct's scan.TimeStamp like t := tStamp.Format(shortDate)
 // which displays dates as 2013-11-18
 const shortDate = "2006-01-02"
 
 func CreateClient() *http.Client {
-	// ToDo:  Add a parameter to turn off/on SSL verification and default to on
+	// ToDo:  Add a parameter/config value to turn off/on SSL verification
+	//        and default to on
+
+	// Read the config file
+	_, err := readConfig()
+	if err != nil {
+		fmt.Println("Problem reading config file")
+		fmt.Printf("%s\n", err)
+		// This should return an error not exit
+		// STOPPED HERE - REPLACE CONSTANTS WITH tf_url AND apikey
+		os.Exit(1)
+	}
 
 	// Create a custom transport so we can turn off SSL verification
 	tr := &http.Transport{
@@ -40,6 +58,83 @@ func CreateClient() *http.Client {
 	tfClient := &http.Client{Transport: tr}
 
 	return tfClient
+}
+
+func readConfig() (bool, error) {
+	// Setup an array of configuration locations
+	pwd := "./" + configFile
+	home := os.Getenv("HOME") + "/.tfclient/" + configFile
+	sys := "/etc/tfclient/" + configFile
+	locs := [3]string{pwd, home, sys}
+	found := false
+
+	// Cycle through the locations, trying to load a config file
+	var config = ""
+	for _, loc := range locs {
+		_, err := os.Stat(loc)
+		if err == nil {
+			// Config file has been found
+			found = true
+			config = loc
+
+			//break out of loop
+			break
+		}
+	}
+
+	if found {
+		// Read configuration file to pull out any configured items
+		file, err := os.Open(config)
+		if err != nil {
+			msg := fmt.Sprintf("  Unable to open config file at %s\n  Error message was: %s\n", config, err.Error())
+			return found, errors.New(msg)
+		}
+		defer file.Close()
+
+		reader := bufio.NewReader(file)
+		line, err := reader.ReadString('\n')
+		for err == nil {
+			// Handle lines that are not comments
+			if strings.Index(line, "#") != 0 {
+				line = strings.Trim(line, " ")
+
+				// Pull out the config values
+				if strings.Contains(line, "tf_url=") {
+					setConfigVal("tf_url", line)
+				}
+
+				if strings.Contains(line, "apikey=") {
+					setConfigVal("apikey", line)
+				}
+			}
+
+			line, err = reader.ReadString('\n')
+		}
+
+		return found, nil
+	}
+
+	if !found {
+		msg := fmt.Sprintf("  Unable to find config file\n\t at %s\n\t or %s\n\t or %s\n", locs[0], locs[1], locs[2])
+		return found, errors.New(msg)
+	}
+
+	return found, errors.New("Unknown error")
+}
+
+func setConfigVal(val string, l string) {
+	// Set the config variable base on val in the line 1
+	// Config values are expected to be of the form foo="bar"
+	switch val {
+	case "tf_url":
+		v := strings.SplitAfterN(l, "=", 2)
+		tf_url = strings.Replace(strings.TrimSpace(v[1]), "\"", "", -1)
+		fmt.Printf("TF URL is now %v\n", tf_url)
+	case "apikey":
+		v := strings.SplitAfterN(l, "=", 2)
+		tf_url = strings.Replace(strings.TrimSpace(v[1]), "\"", "", -1)
+		fmt.Printf("TF API key is now %v\n", tf_url)
+	}
 }
 
 // Helper Functions
