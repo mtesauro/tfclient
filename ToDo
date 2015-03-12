@@ -4,4 +4,4 @@
 ** Could error out early if the "success" provided isn't true
 * Write a nil check functiont that takes a pointer to something and its type as a string and sets the value to an empty version if its nil
 ** Use it for all the optional values returned from TF's API
-
+* Consider adding logging and have it configurable via the config file.

@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -134,11 +133,12 @@ func setConfigVal(val string, l string) {
 
 // Helper Functions
 
-func makeRequest(c *http.Client, m string, u string, b io.Reader) string {
+func makeRequest(c *http.Client, m string, u string, b io.Reader) (string, error) {
 	// Create a request to customize then send
 	req, err := http.NewRequest(m, u, b)
 	if err != nil {
-		fmt.Printf("Error creating request: %s\n", err)
+		msg := fmt.Sprintf("  Error creating new http request: %s\n", err)
+		return "", errors.New(msg)
 	}
 
 	// Add headers as needed
@@ -151,17 +151,19 @@ func makeRequest(c *http.Client, m string, u string, b io.Reader) string {
 	// Make the request
 	resp, err := c.Do(req)
 	if err != nil {
-		fmt.Printf("Error has occured: %s", err)
+		msg := fmt.Sprintf("  Error making the http request: %s\n", err)
+		return "", errors.New(msg)
 	}
 
 	//Read back the JSON response
 	jsonResp, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		fmt.Printf("Error has occured: %s", err)
+		msg := fmt.Sprintf("  Error message was: %s\n", err)
+		return "", errors.New(msg)
 	}
 
-	return string(jsonResp[:])
+	return string(jsonResp[:]), nil
 }
 
 func getFrameworkTypes() [4]string {
@@ -334,72 +336,96 @@ func SeveritySearch(s *Search, sev ...int) {
 
 // Team API calls
 
-func CreateTeam(c *http.Client, name string) string {
+func CreateTeam(c *http.Client, name string) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/teams/new?apiKey=" + apikey
 
 	// Prep data to be POST'ed and make request
 	var postStr = []byte("name=" + url.QueryEscape(name))
-	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	jsonResp, err := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling CreateTeam API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func GetTeams(c *http.Client) string {
+func GetTeams(c *http.Client) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/teams?apiKey=" + apikey
 
 	// Make the request
-	jsonResp := makeRequest(c, "GET", u, nil)
+	jsonResp, err := makeRequest(c, "GET", u, nil)
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling GetTeam API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func LookupTeamId(c *http.Client, id int) string {
+func LookupTeamId(c *http.Client, id int) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/teams/" + strconv.Itoa(id) + "?apiKey=" + apikey
 
 	// Make the request
-	jsonResp := makeRequest(c, "GET", u, nil)
+	jsonResp, err := makeRequest(c, "GET", u, nil)
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling LookupTeamID API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func LookupTeamName(c *http.Client, name string) string {
+func LookupTeamName(c *http.Client, name string) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/teams/lookup?name=" + url.QueryEscape(name) +
 		"&apiKey=" + apikey
 
 	// Make the request
-	jsonResp := makeRequest(c, "GET", u, nil)
+	jsonResp, err := makeRequest(c, "GET", u, nil)
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling LookupTeamName API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
 // Application API calls
 
-func CreateApplication(c *http.Client, n string, aUrl string, t int) string {
+func CreateApplication(c *http.Client, n string, aUrl string, t int) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/teams/" + strconv.Itoa(t) + "/applications/new?apiKey=" + apikey
 
 	// Prep data to be POST'ed and make request
 	var postStr = []byte("name=" + url.QueryEscape(n) + "&url=" + url.QueryEscape(aUrl))
-	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	jsonResp, err := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling CreateApplication API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func LookupAppId(c *http.Client, id int) string {
+func LookupAppId(c *http.Client, id int) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/applications/" + strconv.Itoa(id) + "?apiKey=" + apikey
 
 	// Make the request
-	jsonResp := makeRequest(c, "GET", u, nil)
+	jsonResp, err := makeRequest(c, "GET", u, nil)
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling LookupAppID API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func LookupAppName(c *http.Client, name string, t string) string {
+func LookupAppName(c *http.Client, name string, t string) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/applications/" + url.QueryEscape(t) + "/lookup?name=" +
 		url.QueryEscape(name) + "&apiKey=" + apikey
@@ -412,12 +438,16 @@ func LookupAppName(c *http.Client, name string, t string) string {
 	u = strings.Replace(u, "+", "%20", -1)
 
 	// Make the request
-	jsonResp := makeRequest(c, "GET", u, nil)
+	jsonResp, err := makeRequest(c, "GET", u, nil)
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling LookupAppName API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func SetAppParams(c *http.Client, appId int, frmwrk string, rUrl string) string {
+func SetAppParams(c *http.Client, appId int, frmwrk string, rUrl string) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/applications/" + strconv.Itoa(appId) +
 		"/setParameters?apiKey=" + apikey
@@ -425,31 +455,39 @@ func SetAppParams(c *http.Client, appId int, frmwrk string, rUrl string) string 
 	// Check that framework is among the supported frameworks
 	fTypes := getFrameworkTypes()
 	if !(stringInSlice(frmwrk, fTypes[:])) {
-		// FIX ME - return an err when this happens
-		fmt.Println("Invalid Framework type used when setting App parameters\n")
-		os.Exit(0)
+		// Thow an error when invalid framework type is used
+		msg := fmt.Sprintf("Invalid Framework type used when setting App parameters\n  Valid frameworks are %v+\n", fTypes)
+		return "", errors.New(msg)
 	}
 
 	// Prep data to be POST'ed and make request
 	var postStr = []byte("framework=" + url.QueryEscape(frmwrk) +
 		"&repositoryUrl=" + url.QueryEscape(rUrl))
-	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	jsonResp, err := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling SetAppParams API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func SetWaf(c *http.Client, appId int, wafId int) string {
+func SetWaf(c *http.Client, appId int, wafId int) (string, error) {
 	//Set URL for this API call
 	u := tf_url + "/applications/" + strconv.Itoa(appId) + "/setWaf?wafId=" +
 		strconv.Itoa(wafId) + "&apiKey=" + apikey
 
 	// Oddly, this is an empty post so send nil insteall of a buffer
-	jsonResp := makeRequest(c, "POST", u, nil)
+	jsonResp, err := makeRequest(c, "POST", u, nil)
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling SetWAF API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func SetUrl(c *http.Client, appId int, aUrl string) string {
+func SetUrl(c *http.Client, appId int, aUrl string) (string, error) {
 	//Set URL for this API call
 	u := tf_url + "/applications/" + strconv.Itoa(appId) +
 		"/addUrl?apiKey=" + apikey
@@ -457,9 +495,13 @@ func SetUrl(c *http.Client, appId int, aUrl string) string {
 	//-X POST --data 'url=http://www.example-url.com'
 	//https://host.com:8443/threadfix/rest/applications/3/addUrl?apiKey=Your-key-here
 	var postStr = []byte("url=" + url.QueryEscape(aUrl))
-	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	jsonResp, err := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling SetAppParams API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
 func ScanUpload(c *http.Client, appId int, path string) (string, error) {
@@ -470,21 +512,24 @@ func ScanUpload(c *http.Client, appId int, path string) (string, error) {
 	// Convert the file into a multipart HTTP POST body
 	request, header, err := prepScanFile(u, "file", path)
 	if err != nil {
-		log.Fatal(err)
+		msg := fmt.Sprintf("  Error converting file to multipart post\n%s", err)
+		return "", errors.New(msg)
 	}
 	request.Header.Add("Content-Type", header)
 	request.Header.Del("Accept-Encoding")
 
 	resp, err := c.Do(request)
 	if err != nil {
-		fmt.Printf("Error has occured: %s", err)
+		msg := fmt.Sprintf("  Error uploading scan file\n%s", err)
+		return "", errors.New(msg)
 	}
 
 	//Read back the JSON response
 	jsonResp, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
-		fmt.Printf("Error has occured: %s", err)
+		msg := fmt.Sprintf("  Error reading upload response\n%s", err)
+		return "", errors.New(msg)
 	}
 
 	return string(jsonResp[:]), err
@@ -492,7 +537,7 @@ func ScanUpload(c *http.Client, appId int, path string) (string, error) {
 
 // WAF API calls
 
-func CreateWaf(c *http.Client, n string, wType string) string {
+func CreateWaf(c *http.Client, n string, wType string) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/wafs/new?apiKey=" + apikey
 
@@ -500,49 +545,65 @@ func CreateWaf(c *http.Client, n string, wType string) string {
 	wafTypes := getWafTypes()
 	if !(stringInSlice(wType, wafTypes[:])) {
 		// FIX ME - return an err when this happens
-		fmt.Println("Invalid WAF type used when creating a new WAF\n")
-		os.Exit(0)
+		msg := fmt.Sprintf("Invalid WAF type used when creating a WAF\n  Valid WAFs are %v+\n", wafTypes)
+		return "", errors.New(msg)
 	}
 
 	// Prep data to be POST'ed and make request
 	var postStr = []byte("name=" + url.QueryEscape(n) + "&type=" + url.QueryEscape(wType))
-	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	jsonResp, err := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling CreateWAF API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func LookupWafId(c *http.Client, id int) string {
+func LookupWafId(c *http.Client, id int) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/wafs/" + strconv.Itoa(id) + "?apiKey=" + apikey
 
 	// Make the request
-	jsonResp := makeRequest(c, "GET", u, nil)
+	jsonResp, err := makeRequest(c, "GET", u, nil)
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling LookupWAFId API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func LookupWafName(c *http.Client, name string) string {
+func LookupWafName(c *http.Client, name string) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/wafs/lookup?name=" + url.QueryEscape(name) +
 		"&apiKey=" + apikey
 
 	// Make the request
-	jsonResp := makeRequest(c, "GET", u, nil)
+	jsonResp, err := makeRequest(c, "GET", u, nil)
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling LookupWAFName API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func GetWafs(c *http.Client) string {
+func GetWafs(c *http.Client) (string, error) {
 	// Set URL for this API call
 	u := tf_url + "/wafs?apiKey=" + apikey
 
 	// Make the request
-	jsonResp := makeRequest(c, "GET", u, nil)
+	jsonResp, err := makeRequest(c, "GET", u, nil)
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling GetWAFs API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
-func VulnSearch(c *http.Client, s *Search) string {
+func VulnSearch(c *http.Client, s *Search) (string, error) {
 	//Set URL for this API call
 	u := tf_url + "/vulnerabilities?apiKey=" + apikey
 
@@ -618,9 +679,13 @@ func VulnSearch(c *http.Client, s *Search) string {
 
 	// Slice to strip off beginning and ending &
 	var postStr = []byte(qry[1:(len(qry) - 1)])
-	jsonResp := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	jsonResp, err := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
+	if err != nil {
+		msg := fmt.Sprintf("  Error calling Search API\n%s", err)
+		return "", errors.New(msg)
+	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
 // Functions to parse JSON into normalized structs
