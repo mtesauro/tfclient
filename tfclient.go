@@ -22,11 +22,6 @@ import (
 	"time"
 )
 
-//const APIKEY = "7dx5LHFksAChi0QL6XuoNIPqDjKBn2IxmW4mtqLFg"
-//const TF_URL = "http://10.25.81.84/threadfix/rest"
-//const APIKEY = "Mry4RN77oz0o4Cm2Tfv94cdSJvXLbOVP0natLfReko"
-//const TF_URL = "https://192.168.56.101/threadfix/rest"
-
 // Name of the config file to hold things like TF url and TF's API key
 var configFile string = "tfclient.config"
 var apikey string = ""
