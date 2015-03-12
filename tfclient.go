@@ -25,8 +25,8 @@ import (
 
 //const APIKEY = "7dx5LHFksAChi0QL6XuoNIPqDjKBn2IxmW4mtqLFg"
 //const TF_URL = "http://10.25.81.84/threadfix/rest"
-const APIKEY = "Mry4RN77oz0o4Cm2Tfv94cdSJvXLbOVP0natLfReko"
-const TF_URL = "https://192.168.56.101/threadfix/rest"
+//const APIKEY = "Mry4RN77oz0o4Cm2Tfv94cdSJvXLbOVP0natLfReko"
+//const TF_URL = "https://192.168.56.101/threadfix/rest"
 
 // Name of the config file to hold things like TF url and TF's API key
 var configFile string = "tfclient.config"
@@ -37,18 +37,15 @@ var tf_url string = ""
 // which displays dates as 2013-11-18
 const shortDate = "2006-01-02"
 
-func CreateClient() *http.Client {
+func CreateClient() (*http.Client, error) {
 	// ToDo:  Add a parameter/config value to turn off/on SSL verification
 	//        and default to on
 
 	// Read the config file
 	_, err := readConfig()
 	if err != nil {
-		fmt.Println("Problem reading config file")
-		fmt.Printf("%s\n", err)
-		// This should return an error not exit
-		// STOPPED HERE - REPLACE CONSTANTS WITH tf_url AND apikey
-		os.Exit(1)
+		msg := fmt.Sprintf("Problem reading config file\n%s\n", err)
+		return nil, errors.New(msg)
 	}
 
 	// Create a custom transport so we can turn off SSL verification
@@ -57,7 +54,7 @@ func CreateClient() *http.Client {
 	}
 	tfClient := &http.Client{Transport: tr}
 
-	return tfClient
+	return tfClient, nil
 }
 
 func readConfig() (bool, error) {
@@ -77,7 +74,7 @@ func readConfig() (bool, error) {
 			found = true
 			config = loc
 
-			//break out of loop
+			//break out of this loop
 			break
 		}
 	}
@@ -129,11 +126,9 @@ func setConfigVal(val string, l string) {
 	case "tf_url":
 		v := strings.SplitAfterN(l, "=", 2)
 		tf_url = strings.Replace(strings.TrimSpace(v[1]), "\"", "", -1)
-		fmt.Printf("TF URL is now %v\n", tf_url)
 	case "apikey":
 		v := strings.SplitAfterN(l, "=", 2)
-		tf_url = strings.Replace(strings.TrimSpace(v[1]), "\"", "", -1)
-		fmt.Printf("TF API key is now %v\n", tf_url)
+		apikey = strings.Replace(strings.TrimSpace(v[1]), "\"", "", -1)
 	}
 }
 
@@ -341,7 +336,7 @@ func SeveritySearch(s *Search, sev ...int) {
 
 func CreateTeam(c *http.Client, name string) string {
 	// Set URL for this API call
-	u := TF_URL + "/teams/new?apiKey=" + APIKEY
+	u := tf_url + "/teams/new?apiKey=" + apikey
 
 	// Prep data to be POST'ed and make request
 	var postStr = []byte("name=" + url.QueryEscape(name))
@@ -352,7 +347,7 @@ func CreateTeam(c *http.Client, name string) string {
 
 func GetTeams(c *http.Client) string {
 	// Set URL for this API call
-	u := TF_URL + "/teams?apiKey=" + APIKEY
+	u := tf_url + "/teams?apiKey=" + apikey
 
 	// Make the request
 	jsonResp := makeRequest(c, "GET", u, nil)
@@ -362,7 +357,7 @@ func GetTeams(c *http.Client) string {
 
 func LookupTeamId(c *http.Client, id int) string {
 	// Set URL for this API call
-	u := TF_URL + "/teams/" + strconv.Itoa(id) + "?apiKey=" + APIKEY
+	u := tf_url + "/teams/" + strconv.Itoa(id) + "?apiKey=" + apikey
 
 	// Make the request
 	jsonResp := makeRequest(c, "GET", u, nil)
@@ -372,8 +367,8 @@ func LookupTeamId(c *http.Client, id int) string {
 
 func LookupTeamName(c *http.Client, name string) string {
 	// Set URL for this API call
-	u := TF_URL + "/teams/lookup?name=" + url.QueryEscape(name) +
-		"&apiKey=" + APIKEY
+	u := tf_url + "/teams/lookup?name=" + url.QueryEscape(name) +
+		"&apiKey=" + apikey
 
 	// Make the request
 	jsonResp := makeRequest(c, "GET", u, nil)
@@ -385,7 +380,7 @@ func LookupTeamName(c *http.Client, name string) string {
 
 func CreateApplication(c *http.Client, n string, aUrl string, t int) string {
 	// Set URL for this API call
-	u := TF_URL + "/teams/" + strconv.Itoa(t) + "/applications/new?apiKey=" + APIKEY
+	u := tf_url + "/teams/" + strconv.Itoa(t) + "/applications/new?apiKey=" + apikey
 
 	// Prep data to be POST'ed and make request
 	var postStr = []byte("name=" + url.QueryEscape(n) + "&url=" + url.QueryEscape(aUrl))
@@ -396,7 +391,7 @@ func CreateApplication(c *http.Client, n string, aUrl string, t int) string {
 
 func LookupAppId(c *http.Client, id int) string {
 	// Set URL for this API call
-	u := TF_URL + "/applications/" + strconv.Itoa(id) + "?apiKey=" + APIKEY
+	u := tf_url + "/applications/" + strconv.Itoa(id) + "?apiKey=" + apikey
 
 	// Make the request
 	jsonResp := makeRequest(c, "GET", u, nil)
@@ -406,8 +401,8 @@ func LookupAppId(c *http.Client, id int) string {
 
 func LookupAppName(c *http.Client, name string, t string) string {
 	// Set URL for this API call
-	u := TF_URL + "/applications/" + url.QueryEscape(t) + "/lookup?name=" +
-		url.QueryEscape(name) + "&apiKey=" + APIKEY
+	u := tf_url + "/applications/" + url.QueryEscape(t) + "/lookup?name=" +
+		url.QueryEscape(name) + "&apiKey=" + apikey
 
 	// WORK AROUND
 	// Convert + to %20 to work around a bug in TF which causes lookup failures when
@@ -424,8 +419,8 @@ func LookupAppName(c *http.Client, name string, t string) string {
 
 func SetAppParams(c *http.Client, appId int, frmwrk string, rUrl string) string {
 	// Set URL for this API call
-	u := TF_URL + "/applications/" + strconv.Itoa(appId) +
-		"/setParameters?apiKey=" + APIKEY
+	u := tf_url + "/applications/" + strconv.Itoa(appId) +
+		"/setParameters?apiKey=" + apikey
 
 	// Check that framework is among the supported frameworks
 	fTypes := getFrameworkTypes()
@@ -445,8 +440,8 @@ func SetAppParams(c *http.Client, appId int, frmwrk string, rUrl string) string 
 
 func SetWaf(c *http.Client, appId int, wafId int) string {
 	//Set URL for this API call
-	u := TF_URL + "/applications/" + strconv.Itoa(appId) + "/setWaf?wafId=" +
-		strconv.Itoa(wafId) + "&apiKey=" + APIKEY
+	u := tf_url + "/applications/" + strconv.Itoa(appId) + "/setWaf?wafId=" +
+		strconv.Itoa(wafId) + "&apiKey=" + apikey
 
 	// Oddly, this is an empty post so send nil insteall of a buffer
 	jsonResp := makeRequest(c, "POST", u, nil)
@@ -456,8 +451,8 @@ func SetWaf(c *http.Client, appId int, wafId int) string {
 
 func SetUrl(c *http.Client, appId int, aUrl string) string {
 	//Set URL for this API call
-	u := TF_URL + "/applications/" + strconv.Itoa(appId) +
-		"/addUrl?apiKey=" + APIKEY
+	u := tf_url + "/applications/" + strconv.Itoa(appId) +
+		"/addUrl?apiKey=" + apikey
 
 	//-X POST --data 'url=http://www.example-url.com'
 	//https://host.com:8443/threadfix/rest/applications/3/addUrl?apiKey=Your-key-here
@@ -470,7 +465,7 @@ func SetUrl(c *http.Client, appId int, aUrl string) string {
 func ScanUpload(c *http.Client, appId int, path string) (string, error) {
 	var err error = nil
 	//Set URL for this API call
-	u := TF_URL + "/applications/" + strconv.Itoa(appId) + "/upload?apiKey=" + APIKEY
+	u := tf_url + "/applications/" + strconv.Itoa(appId) + "/upload?apiKey=" + apikey
 
 	// Convert the file into a multipart HTTP POST body
 	request, header, err := prepScanFile(u, "file", path)
@@ -499,7 +494,7 @@ func ScanUpload(c *http.Client, appId int, path string) (string, error) {
 
 func CreateWaf(c *http.Client, n string, wType string) string {
 	// Set URL for this API call
-	u := TF_URL + "/wafs/new?apiKey=" + APIKEY
+	u := tf_url + "/wafs/new?apiKey=" + apikey
 
 	// Check that framework is among the supported frameworks
 	wafTypes := getWafTypes()
@@ -518,7 +513,7 @@ func CreateWaf(c *http.Client, n string, wType string) string {
 
 func LookupWafId(c *http.Client, id int) string {
 	// Set URL for this API call
-	u := TF_URL + "/wafs/" + strconv.Itoa(id) + "?apiKey=" + APIKEY
+	u := tf_url + "/wafs/" + strconv.Itoa(id) + "?apiKey=" + apikey
 
 	// Make the request
 	jsonResp := makeRequest(c, "GET", u, nil)
@@ -528,8 +523,8 @@ func LookupWafId(c *http.Client, id int) string {
 
 func LookupWafName(c *http.Client, name string) string {
 	// Set URL for this API call
-	u := TF_URL + "/wafs/lookup?name=" + url.QueryEscape(name) +
-		"&apiKey=" + APIKEY
+	u := tf_url + "/wafs/lookup?name=" + url.QueryEscape(name) +
+		"&apiKey=" + apikey
 
 	// Make the request
 	jsonResp := makeRequest(c, "GET", u, nil)
@@ -539,7 +534,7 @@ func LookupWafName(c *http.Client, name string) string {
 
 func GetWafs(c *http.Client) string {
 	// Set URL for this API call
-	u := TF_URL + "/wafs?apiKey=" + APIKEY
+	u := tf_url + "/wafs?apiKey=" + apikey
 
 	// Make the request
 	jsonResp := makeRequest(c, "GET", u, nil)
@@ -549,7 +544,7 @@ func GetWafs(c *http.Client) string {
 
 func VulnSearch(c *http.Client, s *Search) string {
 	//Set URL for this API call
-	u := TF_URL + "/vulnerabilities?apiKey=" + APIKEY
+	u := tf_url + "/vulnerabilities?apiKey=" + apikey
 
 	// Create the needed POST string
 	qry := "&"
