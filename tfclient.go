@@ -1084,7 +1084,6 @@ func MakeSearchStruct(s *SrchResp, b string) {
 	// Setup a struct for Upld based on the type
 	// resulting from unmarshall'ing the JSON
 	sType := reflect.TypeOf(raw["object"])
-	fmt.Printf("Object type is %+v \n", sType)
 	var obj []interface{}
 	if strings.Contains(sType.String(), "map") {
 		// Single instance of Upload provided
@@ -1119,6 +1118,13 @@ func MakeSearchStruct(s *SrchResp, b string) {
 		app := re["app"].(map[string]interface{})
 		var appSt AppT
 
+		// Check to see if App URL is empty
+		aUrl := ""
+		if reflect.TypeOf(app["url"]) != nil {
+			// App URL was actually set
+			aUrl = app["url"].(string)
+		}
+
 		// Step into the App Criticality map
 		crit := app["applicationCriticality"].(map[string]interface{})
 		critSt := AppCrit{
@@ -1130,7 +1136,7 @@ func MakeSearchStruct(s *SrchResp, b string) {
 		appSt = AppT{
 			int(app["id"].(float64)),
 			app["name"].(string),
-			app["url"].(string),
+			aUrl,
 			critSt,
 		}
 
@@ -1215,7 +1221,6 @@ func MakeSearchStruct(s *SrchResp, b string) {
 				for i, v := range d {
 					dF[i] = v.(string)
 				}
-				fmt.Printf("This is a print of %+v", f["dataFlowElements"])
 			}
 			dep := ""
 			if reflect.TypeOf(f["dependency"]) != nil {
