@@ -51,6 +51,38 @@ func CreateClient() (*http.Client, error) {
 	return tfClient, nil
 }
 
+func CreateEmptyConfig() error {
+	// Create an empty config file in the current working directory as an example
+	conf := "./" + configFile
+
+	// Double check that client config doesn't already exist
+	_, err := readConfig()
+	if err == nil {
+		// There is a config already, why have you asked to create one
+		msg := fmt.Sprintln("WARN: config file already exists, no need to create one.")
+		return errors.New(msg)
+	}
+
+	// Create a default config file
+	defaultConfig := "# Default tfclient.config file\n"
+	defaultConfig += "# please put the values for your ThreadFix installation below\n"
+	defaultConfig += "# as these are simple place holders\n"
+	defaultConfig += "# NOTE: ThreadFix's REST API URL ends in /rest\n"
+	defaultConfig += "tf_url=\"https://localhost:8443/threadfix/rest\"\n"
+	defaultConfig += "apikey=\"YourAPIKeyHere\"\n"
+
+	// Write a default config
+	fileBytes := []byte(defaultConfig)
+	err = ioutil.WriteFile(conf, fileBytes, 0600)
+	if err != nil {
+		fmt.Println("Unable to write config file")
+		fmt.Printf("Please check permissions of %s\n", conf)
+		os.Exit(1)
+	}
+
+	return nil
+}
+
 func readConfig() (bool, error) {
 	// Setup an array of configuration locations
 	pwd := "./" + configFile
