@@ -227,7 +227,7 @@ func ShowInSearch(s *Search, show string) {
 		s.ReqPara["showOpen"] = "true"
 	}
 
-	// ToDo: Add a default case and return an error if show
+	// TODO -  Add a default case and return an error if show
 	// doesn't match any of the cases
 
 }
@@ -251,7 +251,7 @@ func StartSearch(s *Search, str string) {
 	// Parse the string into a Go time struct
 	// expecting date as mm/dd/yyyy
 	t, _ := time.Parse("01/02/2006", str)
-	// ToDo: catch this error and try other formats
+	// TODO - catch this error and try other formats
 
 	// Convert string to miliseconds since the Unix Epoch as expected by Java
 	// and the ThreadFix API
@@ -319,13 +319,16 @@ func ScannerSearch(s *Search, sc ...string) {
 }
 
 func SeveritySearch(s *Search, sev ...int) {
-	// Create a comman seperated list for the cwe value
+	// Severity values are sent as
+	// 1 = Info, 2 = Low, 3 = Medium, 4 = High, 5 = Critical
+
+	// Create a comman seperated list for the severity value
 	var val string
 	for i, _ := range sev {
 		val = val + "," + strconv.Itoa(sev[i])
 	}
 
-	// Set CWE search by slicing off the initial comma
+	// Set severity search by slicing off the initial comma
 	s.MultiParas.Severity["value"] = val[1:]
 }
 
@@ -1068,12 +1071,12 @@ func CreateSearchStruct() Search {
 
 }
 
-func MakeSearchStruct(s *SrchResp, b string) {
+func MakeSearchStruct(s *SrchResp, b string) error {
 	// Parse the sent JSON body from the API
 	var raw map[string]interface{}
 	if err := json.Unmarshal([]byte(b), &raw); err != nil {
-		// Add some proper error handling here - maybe return an error
-		panic(err)
+		msg := fmt.Sprintf("  Error parsing Search JSON\n%s", err)
+		return errors.New(msg)
 	}
 
 	// Setup the values in the initial struct
@@ -1204,6 +1207,11 @@ func MakeSearchStruct(s *SrchResp, b string) {
 				// attackResponse was actually set
 				aResp = f["attackResponse"].(string)
 			}
+			natId := ""
+			if reflect.TypeOf(f["nativeId"]) != nil {
+				// nativeID was actually set
+				natId = f["nativeId"].(string)
+			}
 			dId := ""
 			if reflect.TypeOf(f["displayId"]) != nil {
 				// displayId was actually set
@@ -1222,10 +1230,30 @@ func MakeSearchStruct(s *SrchResp, b string) {
 					dF[i] = v.(string)
 				}
 			}
+			cUP := ""
+			if reflect.TypeOf(f["calculatedUrlPath"]) != nil {
+				// calculated URL path was actually set
+				cUP = f["calculatedUrlPath"].(string)
+			}
+			cFP := ""
+			if reflect.TypeOf(f["calculatedFilePath"]) != nil {
+				// calculated file path was actually set
+				cFP = f["calculatedFilePath"].(string)
+			}
 			dep := ""
 			if reflect.TypeOf(f["dependency"]) != nil {
 				// dependency was actually set
 				dep = f["dependency"].(string)
+			}
+			vType := ""
+			if reflect.TypeOf(f["vulnerabilityType"]) != nil {
+				// vulnerability type was actually set
+				vType = f["vulnerabilityType"].(string)
+			}
+			sev := ""
+			if reflect.TypeOf(f["severity"]) != nil {
+				// severity was actually set
+				sev = f["severity"].(string)
 			}
 
 			// Create a new Finding struct
@@ -1235,15 +1263,15 @@ func MakeSearchStruct(s *SrchResp, b string) {
 				aStr,
 				aResq,
 				aResp,
-				f["nativeId"].(string),
+				natId,
 				dId,
 				sFL,
 				dF,
-				f["calculatedUrlPath"].(string),
-				f["calculatedFilePath"].(string),
+				cUP,
+				cFP,
 				dep,
-				f["vulnerabilityType"].(string),
-				f["severity"].(string),
+				vType,
+				sev,
 				surfSt,
 			}
 
@@ -1294,5 +1322,7 @@ func MakeSearchStruct(s *SrchResp, b string) {
 
 	// Add the last piece of the search results struct
 	s.Results = resSt
+
+	return nil
 
 }
