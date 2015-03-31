@@ -182,6 +182,7 @@ type Result struct {
 	VulnId       string           `json:"vulnId"`                // "10"
 	Team         TeamS            `json:"team"`                  // Abridged Team struct
 	Scanners     map[int]string   `json:"channelNames"`          // Should at least have one
+	Severity     Sev              `json:"genericSeverity"`       // Should have one for each finding
 	CweVuln      CWE              `json:"genericVulnerability"`  // Should at least have one
 	Findings     map[int]*Finding `json:"findings"`              // Should at least have one
 }
@@ -191,6 +192,12 @@ type Result struct {
 type TeamS struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+type Sev struct {
+	Id    int    `json:"id"`
+	Name  string `json:"name"`
+	Value int    `json:"intValue"`
 }
 
 type CWE struct {

@@ -1182,6 +1182,14 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 			team["name"].(string),
 		}
 
+		// Step into Generic Severiy map
+		sev := re["genericSeverity"].(map[string]interface{})
+		sevSt := Sev{
+			int(sev["id"].(float64)),
+			sev["name"].(string),
+			int(sev["intValue"].(float64)),
+		}
+
 		// Step into the CWE map
 		cwe := re["genericVulnerability"].(map[string]interface{})
 		cweSt := CWE{
@@ -1347,6 +1355,7 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 			re["vulnId"].(string),
 			teamSt,
 			scnrs,
+			sevSt,
 			cweSt,
 			findSt,
 		}
