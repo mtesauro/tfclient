@@ -670,40 +670,60 @@ func VulnSearch(c *http.Client, s *Search) (string, error) {
 			s.SingleParas.NumMerged["value"] + "&"
 	}
 
-	// Multi-value parameters
+	// Handle Multi-value parameters
+	// Insert count of multi-parameter Teams search items
 	if len(s.MultiParas.Teams["value"]) > 0 {
 		vals := strings.Split(s.MultiParas.Teams["value"], ",")
+		count := 0
+
 		for _, item := range vals {
-			qry = qry + s.MultiParas.Teams["name"] + "=" +
-				url.QueryEscape(item) + "&"
+			para := strings.Replace(s.MultiParas.Teams["name"], "~", strconv.Itoa(count), 1)
+			qry = qry + para + "=" + url.QueryEscape(item) + "&"
+			count++
 		}
 	}
+
+	// Insert count of multi-parameter Apps search items
 	if len(s.MultiParas.Apps["value"]) > 0 {
 		vals := strings.Split(s.MultiParas.Apps["value"], ",")
+		count := 0
 		for _, item := range vals {
-			qry = qry + s.MultiParas.Apps["name"] + "=" +
-				url.QueryEscape(item) + "&"
+			para := strings.Replace(s.MultiParas.Apps["name"], "~", strconv.Itoa(count), 1)
+			qry = qry + para + "=" + url.QueryEscape(item) + "&"
+			count++
 		}
 	}
+
+	// Insert count of multi-parameter CWE search items
 	if len(s.MultiParas.Cwe["value"]) > 0 {
 		vals := strings.Split(s.MultiParas.Cwe["value"], ",")
+		count := 0
 		for _, item := range vals {
-			qry = qry + s.MultiParas.Cwe["name"] + "=" +
-				url.QueryEscape(item) + "&"
+			para := strings.Replace(s.MultiParas.Cwe["name"], "~", strconv.Itoa(count), 1)
+			qry = qry + para + "=" + url.QueryEscape(item) + "&"
+			count++
 		}
 	}
+
+	// Insert count of multi-parameter scanner search items
 	if len(s.MultiParas.Scanner["value"]) > 0 {
 		vals := strings.Split(s.MultiParas.Scanner["value"], ",")
+		count := 0
 		for _, item := range vals {
-			qry = qry + s.MultiParas.Scanner["name"] + "=" +
-				url.QueryEscape(item) + "&"
+			para := strings.Replace(s.MultiParas.Scanner["name"], "~", strconv.Itoa(count), 1)
+			qry = qry + para + "=" + url.QueryEscape(item) + "&"
+			count++
 		}
 	}
+
+	// Insert count of multi-parameter severity search items
 	if len(s.MultiParas.Severity["value"]) > 0 {
 		vals := strings.Split(s.MultiParas.Severity["value"], ",")
+		count := 0
 		for _, item := range vals {
-			qry = qry + s.MultiParas.Severity["name"] + "=" +
-				url.QueryEscape(item) + "&"
+			para := strings.Replace(s.MultiParas.Severity["name"], "~", strconv.Itoa(count), 1)
+			qry = qry + para + "=" + url.QueryEscape(item) + "&"
+			count++
 		}
 	}
 
@@ -1084,12 +1104,15 @@ func CreateSearchStruct() Search {
 		map[string]string{"name": "numberMerged", "value": ""},          // NumMerged
 	}
 
+	// Create maps of multiparameter search items and use ~ (tilda) as a place
+	// holder so it can be replaced with a count of number of multi-parameters items
+	// in VulnSearch function.  Numbering starts with 0 and is an int increasing by 1
 	mp := MultiPara{
-		map[string]string{"name": "teams%5B0%5D.id", "value": ""},                   // Teams
-		map[string]string{"name": "applications%5B0%5D.id", "value": ""},            // Apps
-		map[string]string{"name": "genericVulnerabilities%5B0%5D.id", "value": ""},  // Cwe
-		map[string]string{"name": "channelTypes%5B0%5D.name", "value": ""},          // Scammer
-		map[string]string{"name": "genericSeverities%5B0%5D.intValue", "value": ""}, // Severity
+		map[string]string{"name": "teams%5B~%5D.id", "value": ""},                   // Teams
+		map[string]string{"name": "applications%5B~%5D.id", "value": ""},            // Apps
+		map[string]string{"name": "genericVulnerabilities%5B~%5D.id", "value": ""},  // Cwe
+		map[string]string{"name": "channelTypes%5B~%5D.name", "value": ""},          // Scammer
+		map[string]string{"name": "genericSeverities%5B~%5D.intValue", "value": ""}, // Severity
 	}
 
 	// Create the Search Struct
