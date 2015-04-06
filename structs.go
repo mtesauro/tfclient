@@ -176,7 +176,7 @@ type SrchResp struct {
 
 type Result struct {
 	Id           int              `json:"id"`
-	Defect       string           `json:"defect"`                // null
+	Defect       DefectSt         `json:"defect"`                // null
 	CalcFilePath string           `json:"calculatedFilePath"`    // null
 	Active       bool             `json:"active"`                // true
 	FalsPositive bool             `json:"isFalsePositive"`       // false
@@ -193,6 +193,14 @@ type Result struct {
 	Severity     Sev              `json:"genericSeverity"`       // Should have one for each finding
 	CweVuln      CWE              `json:"genericVulnerability"`  // Should at least have one
 	Findings     map[int]*Finding `json:"findings"`              // Should at least have one
+}
+
+type DefectSt struct {
+	Id       int    `json:"id"`
+	NativeId string `json:"nativeId"`
+	Status   string `json:"status"`
+	DUrl     string `json:"defectURL"`
+	Image    string `json:"bugImageName"`
 }
 
 // AppT and the internal CritLevel struct are defined under the Teams API call above

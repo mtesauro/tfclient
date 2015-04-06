@@ -1395,12 +1395,34 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 		}
 
 		// Check for those values which may be null from the API
-		deft := ""
+		var deft DefectSt
 		if reflect.TypeOf(re["defect"]) != nil {
-			// defect was actually set
-			// FIXME
-			//deft = re["defect"].(string)
+			de := re["defect"].(map[string]interface{})
+			var dId int
+			var nId, st, dU, im string
+			for dI, dV := range de {
+				switch dI {
+				case "id":
+					dId = int(dV.(float64))
+				case "nativeId":
+					nId = dV.(string)
+				case "status":
+					st = dV.(string)
+				case "defectURL":
+					dU = dV.(string)
+				case "bugImageName":
+					im = dV.(string)
+				}
+			}
+			deft = DefectSt{
+				dId,
+				nId,
+				st,
+				dU,
+				im,
+			}
 		}
+
 		cfp := ""
 		if reflect.TypeOf(re["calculatedFilePath"]) != nil {
 			// calculatedFilePath was actually set
