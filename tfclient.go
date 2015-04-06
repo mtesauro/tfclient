@@ -574,7 +574,7 @@ func CreateWaf(c *http.Client, n string, wType string) (string, error) {
 	// Check that framework is among the supported frameworks
 	wafTypes := getWafTypes()
 	if !(stringInSlice(wType, wafTypes[:])) {
-		// FIX ME - return an err when this happens
+		// FIXME - return an err when this happens
 		msg := fmt.Sprintf("Invalid WAF type used when creating a WAF\n  Valid WAFs are %v+\n", wafTypes)
 		return "", errors.New(msg)
 	}
@@ -1025,11 +1025,37 @@ func MakeUploadStruct(u *UpldResp, b string) {
 				// sourceFileLocation was actually set
 				sFL = f["sourceFileLocation"].(string)
 			}
-			dF := make(map[int]string)
-			if reflect.TypeOf(f["dataFlowElements"]) != nil {
-				// dataFlowElements was actually set - not seen an example of this
-				dF[1] = f["dataFlowElements"].(string)
+
+			// Step into the DataFlows map
+			dFlows := f["dataFlowElements"].([]interface{})
+			dFlowsSt := make(map[int]DataFlow)
+			for idx, val := range dFlows {
+				d := val.(map[string]interface{})
+				var dfId, lNum, cNum int
+				var sP, l string
+				for iDF, vDF := range d {
+					switch iDF {
+					case "id":
+						dfId = int(vDF.(float64))
+					case "lineNumber":
+						lNum = int(vDF.(float64))
+					case "columnNumber":
+						cNum = int(vDF.(float64))
+					case "sourceFileName":
+						sP = vDF.(string)
+					case "lineText":
+						l = vDF.(string)
+					}
+				}
+				dFlowsSt[idx] = DataFlow{
+					dfId,
+					lNum,
+					cNum,
+					sP,
+					l,
+				}
 			}
+
 			dep := ""
 			if reflect.TypeOf(f["dependency"]) != nil {
 				// dependency was actually set
@@ -1045,7 +1071,7 @@ func MakeUploadStruct(u *UpldResp, b string) {
 				f["nativeId"].(string),
 				dId,
 				sFL,
-				dF,
+				dFlowsSt,
 				f["calculatedUrlPath"].(string),
 				f["calculatedFilePath"].(string),
 				dep,
@@ -1243,10 +1269,15 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 				// surfaceLocation was actually set
 				param = s["surfaceLocation"].(string)
 			}
+			path := ""
+			if reflect.TypeOf(s["path"]) != nil {
+				// path was actually set
+				path = s["path"].(string)
+			}
 			surfSt := SurfLoc{
 				int(s["id"].(float64)),
 				param,
-				s["path"].(string),
+				path,
 			}
 
 			// The following items are not always set in the JSON response
@@ -1285,14 +1316,37 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 				// sourceFileLocation was actually set
 				sFL = f["sourceFileLocation"].(string)
 			}
-			dF := make(map[int]string)
-			if reflect.TypeOf(f["dataFlowElements"]) != nil {
-				// dataFlowElements was actually set - not seen an example of this
-				d := f["dataFlowElements"].([]interface{})
-				for i, v := range d {
-					dF[i] = v.(string)
+
+			// Step into the DataFlows map
+			dFlows := f["dataFlowElements"].([]interface{})
+			dFlowsSt := make(map[int]DataFlow)
+			for idx, val := range dFlows {
+				d := val.(map[string]interface{})
+				var dfId, lNum, cNum int
+				var sP, l string
+				for iDF, vDF := range d {
+					switch iDF {
+					case "id":
+						dfId = int(vDF.(float64))
+					case "lineNumber":
+						lNum = int(vDF.(float64))
+					case "columnNumber":
+						cNum = int(vDF.(float64))
+					case "sourceFileName":
+						sP = vDF.(string)
+					case "lineText":
+						l = vDF.(string)
+					}
+				}
+				dFlowsSt[idx] = DataFlow{
+					dfId,
+					lNum,
+					cNum,
+					sP,
+					l,
 				}
 			}
+
 			cUP := ""
 			if reflect.TypeOf(f["calculatedUrlPath"]) != nil {
 				// calculated URL path was actually set
@@ -1329,7 +1383,7 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 				natId,
 				dId,
 				sFL,
-				dF,
+				dFlowsSt,
 				cUP,
 				cFP,
 				dep,
@@ -1344,7 +1398,8 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 		deft := ""
 		if reflect.TypeOf(re["defect"]) != nil {
 			// defect was actually set
-			deft = re["defect"].(string)
+			// FIXME
+			//deft = re["defect"].(string)
 		}
 		cfp := ""
 		if reflect.TypeOf(re["calculatedFilePath"]) != nil {

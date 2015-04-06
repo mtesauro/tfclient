@@ -132,21 +132,29 @@ type UpldInfo struct {
 }
 
 type Finding struct {
-	Id           int            `json:"id"`
-	LongDesc     string         `json:"longDescription"`    // null
-	AttString    string         `json:"attackString"`       // ""
-	AttReq       string         `json:"attackRequest"`      // null
-	AttResp      string         `json:"attackResponse"`     // null
-	NativeId     string         `json:"nativeId"`           // "7a978638a89516db5aa9d74efcc9a094"
-	DisplId      string         `json:"displayId"`          // null
-	SrcFileLoc   string         `json:"sourceFileLocation"` // null
-	DataFlow     map[int]string `json:"dataFlowElements"`   // null
-	CalcUrlPath  string         `json:"calculatedUrlPath"`  // "/"
-	CalcFilePath string         `json:"calculatedFilePath"` // ""
-	Depend       string         `json:"dependency"`         // null,
-	VulnType     string         `json:"vulnerabilityType"`  // "Web Browser XSS Protection Not Enabled"
-	Severity     string         `json:"severity"`           // "1"
-	Loc          SurfLoc        `json:"surfaceLocation"`
+	Id           int              `json:"id"`
+	LongDesc     string           `json:"longDescription"`    // null
+	AttString    string           `json:"attackString"`       // ""
+	AttReq       string           `json:"attackRequest"`      // null
+	AttResp      string           `json:"attackResponse"`     // null
+	NativeId     string           `json:"nativeId"`           // "7a978638a89516db5aa9d74efcc9a094"
+	DisplId      string           `json:"displayId"`          // null
+	SrcFileLoc   string           `json:"sourceFileLocation"` // null
+	DataFlows    map[int]DataFlow `json:"dataFlowElements"`   // null
+	CalcUrlPath  string           `json:"calculatedUrlPath"`  // "/"
+	CalcFilePath string           `json:"calculatedFilePath"` // ""
+	Depend       string           `json:"dependency"`         // null,
+	VulnType     string           `json:"vulnerabilityType"`  // "Web Browser XSS Protection Not Enabled"
+	Severity     string           `json:"severity"`           // "1"
+	Loc          SurfLoc          `json:"surfaceLocation"`
+}
+
+type DataFlow struct {
+	Id      int    `json:"id"`
+	LineNum int    `json:"lineNumber"`
+	ColNum  int    `json:"columnNumber"`
+	SrcPath string `json:"sourceFileName"`
+	Line    string `json:"lineText"`
 }
 
 type SurfLoc struct {
