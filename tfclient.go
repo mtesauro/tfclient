@@ -32,7 +32,7 @@ var tf_url string = ""
 const shortDate = "2006-01-02"
 
 func CreateClient() (*http.Client, error) {
-	// ToDo:  Add a parameter/config value to turn off/on SSL verification
+	// TODO -  Add a parameter/config value to turn off/on SSL verification
 	//        and default to on
 
 	// Read the config file
@@ -522,8 +522,6 @@ func SetUrl(c *http.Client, appId int, aUrl string) (string, error) {
 	u := tf_url + "/applications/" + strconv.Itoa(appId) +
 		"/addUrl?apiKey=" + apikey
 
-	//-X POST --data 'url=http://www.example-url.com'
-	//https://host.com:8443/threadfix/rest/applications/3/addUrl?apiKey=Your-key-here
 	var postStr = []byte("url=" + url.QueryEscape(aUrl))
 	jsonResp, err := makeRequest(c, "POST", u, bytes.NewBuffer(postStr))
 	if err != nil {
@@ -535,7 +533,6 @@ func SetUrl(c *http.Client, appId int, aUrl string) (string, error) {
 }
 
 func ScanUpload(c *http.Client, appId int, path string) (string, error) {
-	var err error = nil
 	//Set URL for this API call
 	u := tf_url + "/applications/" + strconv.Itoa(appId) + "/upload?apiKey=" + apikey
 
@@ -562,7 +559,7 @@ func ScanUpload(c *http.Client, appId int, path string) (string, error) {
 		return "", errors.New(msg)
 	}
 
-	return string(jsonResp[:]), err
+	return string(jsonResp[:]), nil
 }
 
 // WAF API calls
@@ -574,7 +571,7 @@ func CreateWaf(c *http.Client, n string, wType string) (string, error) {
 	// Check that framework is among the supported frameworks
 	wafTypes := getWafTypes()
 	if !(stringInSlice(wType, wafTypes[:])) {
-		// FIXME - return an err when this happens
+		// Return an err when this happens
 		msg := fmt.Sprintf("Invalid WAF type used when creating a WAF\n  Valid WAFs are %v+\n", wafTypes)
 		return "", errors.New(msg)
 	}
@@ -744,7 +741,7 @@ func MakeTeamStruct(t *TeamResp, b string) {
 	// Parse the sent JSON body from the API
 	var raw map[string]interface{}
 	if err := json.Unmarshal([]byte(b), &raw); err != nil {
-		// Add some proper error handling here - maybe return an error
+		// TODO - Add some proper error handling here - maybe return an error
 		panic(err)
 	}
 
@@ -822,7 +819,7 @@ func MakeAppStruct(a *AppResp, b string) {
 	// Parse the sent JSON body from the API
 	var raw map[string]interface{}
 	if err := json.Unmarshal([]byte(b), &raw); err != nil {
-		// Add some proper error handling here - maybe return an error
+		// TODO - Add some proper error handling here - maybe return an error
 		panic(err)
 	}
 
@@ -879,7 +876,7 @@ func MakeAppStruct(a *AppResp, b string) {
 
 			// http://play.golang.org/p/r5kBJHPDUb
 			// Convert Mills provided by TF into something useful
-			// Note: There is likely differenced based on timezone of the
+			// Note: There is likely a difference based on timezone of the
 			// TF server vs local time where this is run
 			rawTime := int64(scan["importTime"].(float64))
 			tStamp := time.Unix(0, rawTime*int64(time.Millisecond))
@@ -939,7 +936,7 @@ func MakeUploadStruct(u *UpldResp, b string) {
 	// Parse the sent JSON body from the API
 	var raw map[string]interface{}
 	if err := json.Unmarshal([]byte(b), &raw); err != nil {
-		// Add some proper error handling here - maybe return an error
+		// TODO - Add some proper error handling here - maybe return an error
 		panic(err)
 	}
 
@@ -1079,7 +1076,6 @@ func MakeUploadStruct(u *UpldResp, b string) {
 				f["severity"].(string),
 				surfSt,
 			}
-
 		}
 
 		// Convert sent importTime to a Go time struct
@@ -1465,5 +1461,4 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 	s.Results = resSt
 
 	return nil
-
 }
