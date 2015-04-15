@@ -953,7 +953,8 @@ func MakeUploadStruct(u *UpldResp, b string) error {
 		// Create an empty UploadResp struct and return early
 		emptySt := make(map[int]UpldInfo)
 		u.Upload = emptySt
-		return
+		msg := fmt.Sprintf("Empty Upload struct - success was false in JSON response from TF")
+		return errors.New(msg)
 	}
 
 	// Setup a struct for Upld based on the type
