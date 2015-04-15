@@ -39,7 +39,11 @@ func main() {
 
 	// Create a search struct and load it with the search with just conducted
 	var search tfclient.SrchResp
-	tfclient.MakeSearchStruct(&search, vulns)
+	err := tfclient.MakeSearchStruct(&search, vulns)
+	if err != nil {
+		fmt.Print(err)
+		os.Exit(1)
+	}
 
 	// Print the search struct
 	fmt.Printf("\nSearch results are:\n %+v \n\n", search)
