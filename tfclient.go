@@ -737,12 +737,12 @@ func VulnSearch(c *http.Client, s *Search) (string, error) {
 
 // Functions to parse JSON into normalized structs
 
-func MakeTeamStruct(t *TeamResp, b string) {
+func MakeTeamStruct(t *TeamResp, b string) error {
 	// Parse the sent JSON body from the API
 	var raw map[string]interface{}
 	if err := json.Unmarshal([]byte(b), &raw); err != nil {
-		// TODO - Add some proper error handling here - maybe return an error
-		panic(err)
+		msg := fmt.Sprintf("  Error parsing Search JSON\n%s", err)
+		return errors.New(msg)
 	}
 
 	// Setup the values in the initial struct
@@ -813,14 +813,15 @@ func MakeTeamStruct(t *TeamResp, b string) {
 
 	t.Tm = teamSt
 
+	return nil
 }
 
-func MakeAppStruct(a *AppResp, b string) {
+func MakeAppStruct(a *AppResp, b string) error {
 	// Parse the sent JSON body from the API
 	var raw map[string]interface{}
 	if err := json.Unmarshal([]byte(b), &raw); err != nil {
-		// TODO - Add some proper error handling here - maybe return an error
-		panic(err)
+		msg := fmt.Sprintf("  Error parsing Search JSON\n%s", err)
+		return errors.New(msg)
 	}
 
 	// Setup the values in the initial struct
@@ -930,14 +931,16 @@ func MakeAppStruct(a *AppResp, b string) {
 	}
 
 	a.Ap = appSt
+
+	return nil
 }
 
-func MakeUploadStruct(u *UpldResp, b string) {
+func MakeUploadStruct(u *UpldResp, b string) error {
 	// Parse the sent JSON body from the API
 	var raw map[string]interface{}
 	if err := json.Unmarshal([]byte(b), &raw); err != nil {
-		// TODO - Add some proper error handling here - maybe return an error
-		panic(err)
+		msg := fmt.Sprintf("  Error parsing Upload response JSON.  Error was: %s", err)
+		return errors.New(msg)
 	}
 
 	// Setup the values in the initial struct
@@ -1105,6 +1108,8 @@ func MakeUploadStruct(u *UpldResp, b string) {
 	}
 
 	u.Upload = upldSt
+
+	return nil
 }
 
 func CreateSearchStruct() Search {
