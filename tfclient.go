@@ -1440,6 +1440,11 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 			// parameter is was actually set
 			parm = re["parameter"].(string)
 		}
+		path := ""
+		if reflect.TypeOf(re["path"]) != nil {
+			// path is was actually set
+			parm = re["path"].(string)
+		}
 
 		resSt[i] = Result{
 			int(re["id"].(float64)),
@@ -1452,7 +1457,7 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 			vComm,
 			dep,
 			parm,
-			re["path"].(string),
+			path,
 			appSt,
 			re["vulnId"].(string),
 			teamSt,
