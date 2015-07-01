@@ -1337,7 +1337,11 @@ func MakeSearchStruct(s *SrchResp, b string) error {
 					case "sourceFileName":
 						sP = vDF.(string)
 					case "lineText":
-						l = vDF.(string)
+						l = ""
+						if reflect.TypeOf(vDF) != nil {
+							// lineText was actually set
+							l = vDF.(string)
+						}
 					}
 				}
 				dFlowsSt[idx] = DataFlow{
