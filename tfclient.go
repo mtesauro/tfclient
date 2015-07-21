@@ -829,6 +829,13 @@ func MakeAppStruct(a *AppResp, b string) error {
 	a.RespCode = int(raw["responseCode"].(float64))
 	a.Msg = raw["message"].(string)
 
+	// Error out if success from TF is false as API errored on the request
+	// Send back TF's message as the Go error message
+	if a.Success == false {
+		msg := fmt.Sprintf("  Error from ThreadFix API\n\t  %s", a.Msg)
+		return errors.New(msg)
+	}
+
 	// Setup a struct for App based on the type
 	// resulting from unmarshall'ing the JSON
 	tType := reflect.TypeOf(raw["object"])
