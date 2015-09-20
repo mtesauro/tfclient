@@ -1034,33 +1034,36 @@ func MakeUploadStruct(u *UpldResp, b string) error {
 				sFL = f["sourceFileLocation"].(string)
 			}
 
-			// Step into the DataFlows map
-			dFlows := f["dataFlowElements"].([]interface{})
+			// Step into the DataFlows map if its not nil
 			dFlowsSt := make(map[int]DataFlow)
-			for idx, val := range dFlows {
-				d := val.(map[string]interface{})
-				var dfId, lNum, cNum int
-				var sP, l string
-				for iDF, vDF := range d {
-					switch iDF {
-					case "id":
-						dfId = int(vDF.(float64))
-					case "lineNumber":
-						lNum = int(vDF.(float64))
-					case "columnNumber":
-						cNum = int(vDF.(float64))
-					case "sourceFileName":
-						sP = vDF.(string)
-					case "lineText":
-						l = vDF.(string)
+			if reflect.TypeOf(f["dataFlowElements"]) != nil {
+				// dataFlowElements was actually set
+				dFlows := f["dataFlowElements"].([]interface{})
+				for idx, val := range dFlows {
+					d := val.(map[string]interface{})
+					var dfId, lNum, cNum int
+					var sP, l string
+					for iDF, vDF := range d {
+						switch iDF {
+						case "id":
+							dfId = int(vDF.(float64))
+						case "lineNumber":
+							lNum = int(vDF.(float64))
+						case "columnNumber":
+							cNum = int(vDF.(float64))
+						case "sourceFileName":
+							sP = vDF.(string)
+						case "lineText":
+							l = vDF.(string)
+						}
 					}
-				}
-				dFlowsSt[idx] = DataFlow{
-					dfId,
-					lNum,
-					cNum,
-					sP,
-					l,
+					dFlowsSt[idx] = DataFlow{
+						dfId,
+						lNum,
+						cNum,
+						sP,
+						l,
+					}
 				}
 			}
 
