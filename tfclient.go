@@ -1,5 +1,4 @@
-// tfclient
-// a library for interacting with the ThreadFix REST API
+// Package tfclient is a library for interacting with the ThreadFix REST API
 package tfclient
 
 import (
