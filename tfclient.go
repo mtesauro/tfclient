@@ -909,6 +909,13 @@ func MakeAppStruct(a *AppResp, b string) error {
 
 		}
 
+		// App URL in JSON isn't always set
+		appUrl := ""
+		if reflect.TypeOf(app["url"]) != nil {
+			// App URL was actually set
+			appUrl = app["url"].(string)
+		}
+
 		// uniqueID in JSON isn't always set
 		uniq := ""
 		if reflect.TypeOf(app["uniqueId"]) != nil {
@@ -920,7 +927,7 @@ func MakeAppStruct(a *AppResp, b string) error {
 		appSt[i] = App{
 			int(app["id"].(float64)),
 			app["name"].(string),
-			app["url"].(string),
+			appUrl,
 			uniq,
 			int(app["infoVulnCount"].(float64)),
 			int(app["lowVulnCount"].(float64)),
